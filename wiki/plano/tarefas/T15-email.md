@@ -50,3 +50,9 @@ Com SMTP do `.env`, o e-mail deve chegar com remetente "BENJAMIM ABC"; sem SMTP,
 - Não colocar credenciais SMTP em código, wiki ou testes.
 - Não deixar `sendEmail` lançar exceção para o chamador.
 - Não enviar e-mail dentro de transação de banco.
+
+## Desvios registrados
+- (2026-10-09) O logo dos e-mails usa `public/images/benjamim.png`; o arquivo `benjamim-hero.jpg` citado nos passos não existe no projeto.
+- (2026-10-09) `email:test` roda com `tsx --conditions=react-server`, porque `src/server/env.ts` importa `server-only`. Todo script `tsx` que importe `@/server/*` precisa da mesma opção.
+- (2026-10-09) `sendEmail<T>(template, to, data)` é genérico e tipado por template. Cada template aceita `siteUrl` opcional; sem ele, a origem do link do próprio e-mail é usada para logo e rodapé.
+- (2026-10-09) O aceite da T15b foi rodado contra o Mailpit local (127.0.0.1:1025), não contra o SMTP real, para não disparar e-mail de verdade a um endereço de exemplo. O envio real fica para a T24.

@@ -25,7 +25,7 @@ tags: [plano, status]
 | T12 | pendente | - |
 | T13 | pendente | - |
 | T14 | pendente | - |
-| T15 | pendente | - |
+| T15 | concluída | 2026-10-09 06:33 |
 | T16 | pendente | - |
 | T17 | pendente | - |
 | T18 | pendente | - |
