@@ -11,7 +11,7 @@ import {
   Flag,
   Star,
 } from 'lucide-react';
-import { campaign, money } from '@/lib/campaign';
+import { money } from '@/lib/campaign';
 
 export function Brand() {
   return (
@@ -84,8 +84,18 @@ export function Portrait({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function Progress({ compact = false }: { compact?: boolean }) {
-  const percent = Math.min(100, Math.round((campaign.raised / campaign.goal) * 100));
+export function Progress({
+  compact = false,
+  raisedCents,
+  goalCents,
+  winner = null,
+}: {
+  compact?: boolean;
+  raisedCents: number;
+  goalCents: number;
+  winner?: { number: number; firstName: string } | null;
+}) {
+  const percent = goalCents > 0 ? Math.min(100, Math.round((raisedCents / goalCents) * 100)) : 0;
   return (
     <section
       id="meta"
@@ -99,7 +109,7 @@ export function Progress({ compact = false }: { compact?: boolean }) {
           </span>
           <div>
             <span>Nossa meta</span>
-            <strong>{money(campaign.goal)}</strong>
+            <strong>{money(goalCents)}</strong>
             <small>Para esse dia especial</small>
           </div>
         </div>
@@ -109,7 +119,7 @@ export function Progress({ compact = false }: { compact?: boolean }) {
           </span>
           <div>
             <span>Já arrecadamos</span>
-            <strong className="green-text">{money(campaign.raised)}</strong>
+            <strong className="green-text">{money(raisedCents)}</strong>
             <small>Uma história começando</small>
           </div>
         </div>
@@ -119,7 +129,7 @@ export function Progress({ compact = false }: { compact?: boolean }) {
           </span>
           <div>
             <span>Falta para a meta</span>
-            <strong>{money(campaign.goal - campaign.raised)}</strong>
+            <strong>{money(goalCents - raisedCents)}</strong>
             <small>Cada gesto faz a diferença</small>
           </div>
         </div>
@@ -137,11 +147,22 @@ export function Progress({ compact = false }: { compact?: boolean }) {
         </div>
         <strong>{percent}%</strong>
       </div>
+      {winner && (
+        <small>
+          Número sorteado: {String(winner.number).padStart(4, '0')} — parabéns, {winner.firstName}!
+        </small>
+      )}
     </section>
   );
 }
 
-export function Footer() {
+export function Footer({
+  instagramFather = '',
+  instagramMother = '',
+}: {
+  instagramFather?: string;
+  instagramMother?: string;
+} = {}) {
   return (
     <footer className="footer">
       <div className="container footer-top">
@@ -158,13 +179,13 @@ export function Footer() {
           Site desenvolvido pelo pai, <b>Abner Santos</b>
         </span>
         <div>
-          {campaign.instagramFather && (
-            <a href={campaign.instagramFather}>
+          {instagramFather && (
+            <a href={instagramFather}>
               <Camera size={15} /> Instagram do pai <ArrowUpRight size={13} />
             </a>
           )}
-          {campaign.instagramMother && (
-            <a href={campaign.instagramMother}>
+          {instagramMother && (
+            <a href={instagramMother}>
               <Camera size={15} /> Instagram da mãe <ArrowUpRight size={13} />
             </a>
           )}

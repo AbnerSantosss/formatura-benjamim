@@ -9,7 +9,7 @@ import './order-flow.css';
 export const metadata: Metadata = {
   title: 'Um pequeno formando, um grande sonho · Benjamim',
   description: 'Uma iniciativa da família para celebrar a formatura do ABC do Benjamim.',
-  robots: { index: false, follow: false },
+  robots: { index: process.env.NODE_ENV === 'production', follow: true },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

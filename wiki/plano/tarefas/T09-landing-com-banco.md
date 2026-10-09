@@ -32,3 +32,8 @@ Abrir `/` com o banco com 1 pedido aprovado (criar via demo) e ver o valor arrec
 ## Não fazer
 - Não reescrever o CSS, o JSX estrutural, as imagens ou os textos.
 - Não buscar dados via `fetch('http://localhost...')` dentro do Server Component.
+
+## Desvios registrados
+- (2026-10-09) `src/components/shared.tsx` entrou na tarefa só para trocar a origem dos dados: `Progress` recebe `raisedCents`, `goalCents` e `winner`; `Footer` recebe `instagramFather` e `instagramMother` ([[decisoes/011-progress-e-footer-recebem-dados-por-prop]]).
+- (2026-10-09) O Instagram é lido direto da campanha `main` em `src/app/page.tsx` (não há função no serviço).
+- (2026-10-09) `robots.index` em `layout.tsx` passou a depender de `NODE_ENV === 'production'`.

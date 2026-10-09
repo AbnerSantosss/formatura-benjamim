@@ -35,6 +35,7 @@ Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[de
 - [[decisoes/008-portas-do-postgres-local]] — Postgres local em 5442 (dev) e 5443 (teste), porque 5432/5433 já estão em uso na máquina.
 - [[decisoes/009-ajustes-de-consistencia-do-schema]] — meta R$ 2.500, `unitCents`, campanha `main` e outras divergências do plano resolvidas na execução.
 - [[decisoes/010-contratos-reais-da-janela-b]] — build sem segredos de produção, assinaturas reais de pedidos, auth e e-mail; pendências do dono.
+- [[decisoes/011-progress-e-footer-recebem-dados-por-prop]] — `Progress` e `Footer` deixam de ler `campaign.ts`; cada página repassa os dados do banco.
 
 ## Integrações
 - [[integracoes/mercado-pago]] — Orders API Pix, webhook `x-signature`, estorno, sandbox.

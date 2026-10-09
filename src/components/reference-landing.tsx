@@ -39,7 +39,22 @@ function PixMark() {
     </span>
   );
 }
-export default function ReferenceLanding() {
+// Dados vindos do servidor (página `/`). Só valores serializáveis: drawAt chega como ISO ou null.
+export type LandingSummary = {
+  raisedCents: number;
+  goalCents: number;
+  numbersSold: number;
+  numbersAvailable: number;
+  drawAt: string | null;
+  drawPublic: boolean;
+  winner: { number: number; firstName: string } | null;
+};
+export type LandingProps = {
+  summary: LandingSummary;
+  instagramFather: string;
+  instagramMother: string;
+};
+export default function ReferenceLanding({ summary }: LandingProps) {
   const [amount, setAmount] = useState(campaign.defaultAmount);
   const [menu, setMenu] = useState(false);
   return (
@@ -119,7 +134,11 @@ export default function ReferenceLanding() {
         </section>
         <div className="ref-content">
           <div className="ref-progress">
-            <Progress />
+            <Progress
+              raisedCents={summary.raisedCents}
+              goalCents={summary.goalCents}
+              winner={summary.drawPublic ? summary.winner : null}
+            />
           </div>
           <section className="ref-help" id="ajudar">
             <div className="ref-help-copy">
