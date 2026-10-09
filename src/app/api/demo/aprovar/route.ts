@@ -5,6 +5,7 @@ import { AppError, NotFoundError } from '@/server/errors';
 import { demoApprove } from '@/server/gateways/demo';
 import { fail, json, readJson } from '@/server/http';
 import { applyProviderStatus } from '@/server/orders.service';
+import { sendOrderConfirmedEmail } from '@/server/payment-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,8 @@ export async function POST(req: Request) {
       throw new AppError('ORDER_NOT_APPROVABLE', 'Este pedido não pode mais ser aprovado.', 409);
     }
     if (applied.changed) {
-      // TODO(T18): e-mail
+      // Fora da transação; `sendOrderConfirmedEmail` nunca lança.
+      await sendOrderConfirmedEmail(order.id);
     }
     return json({ ok: true });
   } catch (error) {

@@ -1,7 +1,10 @@
 import 'server-only';
 import { Prisma } from '@prisma/client';
 import type { Gateway } from '@prisma/client';
+import { formatNumber } from '@/domain/orders';
 import { prisma } from '@/server/db';
+import { sendEmail } from '@/server/email/send';
+import { env } from '@/server/env';
 import { GatewayNotConfiguredError, GatewayNotImplementedError } from '@/server/errors';
 import { getGatewayById } from '@/server/gateways/registry';
 import type { GatewayId, ProviderRef, ProviderStatus } from '@/server/gateways/types';
@@ -35,6 +38,44 @@ function storedPayload(rawBody: string): Prisma.InputJsonValue {
 }
 
 /**
+ * Envia o e-mail "pedido confirmado" ao contribuinte de um pedido APPROVED. Chamar sempre DEPOIS do
+ * commit que aprovou o pedido. Nunca lança (falha de e-mail não pode derrubar webhook nem painel):
+ * devolve `false` se o pedido não existe, não está aprovado ou o envio falhou.
+ */
+export async function sendOrderConfirmedEmail(orderId: string): Promise<boolean> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+        status: true,
+        publicToken: true,
+        amountCents: true,
+        product: { select: { title: true } },
+        contributor: { select: { name: true, email: true } },
+        numbers: { where: { active: true }, select: { number: true }, orderBy: { number: 'asc' } },
+      },
+    });
+    if (!order || order.status !== 'APPROVED') return false;
+    const campaign = await prisma.campaign.findUnique({ where: { id: 'main' }, select: { drawAt: true } });
+
+    const site = env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
+    const { ok } = await sendEmail('pedido-confirmado', order.contributor.email, {
+      nome: order.contributor.name,
+      valorCentavos: order.amountCents,
+      produto: order.product.title,
+      numeros: order.numbers.map((row) => formatNumber(row.number)),
+      linkObrigado: `${site}/obrigado/${order.id}?t=${encodeURIComponent(order.publicToken)}`,
+      dataSorteio: campaign?.drawAt ?? null,
+    });
+    return ok;
+  } catch (error) {
+    logError('email', error);
+    return false;
+  }
+}
+
+/**
  * Aplica ao pedido o status conferido no provedor. O pedido é localizado por `externalReference`
  * (= `Order.id`) e precisa ter sido criado no mesmo gateway que respondeu.
  */
@@ -65,7 +106,8 @@ async function applyVerifiedStatus(
     { now },
   );
   if (applied.changed && applied.status === 'APPROVED') {
-    // TODO(T18): e-mail
+    // Fora da transação (já confirmada em `applyProviderStatus`); falha de e-mail não propaga.
+    await sendOrderConfirmedEmail(orderId);
   }
   return {
     result: `${status.status}:${applied.status}${applied.changed ? ':changed' : ''}`,

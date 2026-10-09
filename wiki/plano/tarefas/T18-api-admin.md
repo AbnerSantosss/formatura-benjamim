@@ -46,3 +46,9 @@ grep -rn "TODO(T18)" src/ ; echo "(esperado: nada)"
 
 ## Desvios registrados
 - 2026-10-09: o campo de preço do produto é `Product.unitCents` (não `unitPriceCents`), e a campanha única tem id `main`. Ver [[decisoes/009-ajustes-de-consistencia-do-schema]].
+- (2026-10-09) `sendOrderConfirmedEmail(orderId)` fica em `payment-sync.ts` e é aguardada (não usa `after()`); webhook, `demo/aprovar` e reenviar-email a reutilizam. Nunca lança.
+- (2026-10-09) Formato das respostas: `metricas` devolve o objeto direto; `pedidos` `{ items, page, pageSize, total }`; `pedidos/[id]` `{ order }`; estornar `{ changed, order }`; reenviar-email `{ emailSent }`; produtos `{ items }`/`{ product }`; configurações `{ settings, gateways }`; usuários `{ items }`, `{ admin, emailSent }`, `{ admin }`; expirar `{ expired }`. Erros `{ code, message }`.
+- (2026-10-09) CSV com `;`, aspas em todas as células, `\r\n`, BOM, data em horário de Fortaleza, valor em reais, telefone formatado e prefixo `'` contra fórmula.
+- (2026-10-09) PENDING vencido aparece como EXPIRED em lista, detalhe e CSV. `publicToken` vai na lista e no detalhe do admin para abrir `/pagamento/[id]?t=`.
+- (2026-10-09) Extras: reativar admin (`PATCH usuarios/[id] { active: true }`, só OWNER); só OWNER convida OWNER; limite de 3 reenvios a cada 10 min; `PATCH produtos` na coleção aceita `{ id, ...campos }`; preço trava com `PRODUCT_PRICE_LOCKED` se houver pedido aprovado.
+- (2026-10-09) Estorno exige APPROVED com referência do provedor; pedido pago após o prazo continua manual (ADR 010).
