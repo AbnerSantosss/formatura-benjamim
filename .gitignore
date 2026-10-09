@@ -5,3 +5,6 @@ out/
 .env*
 !.env.example
 test-results/
+
+# Registro automático de sessões (contém pedidos na íntegra)
+registro/

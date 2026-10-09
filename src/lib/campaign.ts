@@ -4,7 +4,7 @@ export const campaign = {
   goal: 250000,
   raised: 0,
   amounts: [500, 1000, 2500, 5000],
-  defaultAmount: 2500,
+  defaultAmount: 500,
   instagramFather: '',
   instagramMother: '',
 };

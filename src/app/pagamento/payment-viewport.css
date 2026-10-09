@@ -1,0 +1,84 @@
+/* Contain preserves the artwork; the pale backing fills every viewport ratio. */
+body:has(.payment-viewport) { margin: 0; }
+body:has(.payment-viewport) > .demo-banner { display: none; }
+.payment-viewport {
+  --payment-art: url('/images/pagamento-cartoon-chapeu-v2.png');
+  position: relative; isolation: isolate; width: 100%; height: 100vh; height: 100dvh;
+  display: grid; grid-template-rows: 64px minmax(0, 1fr) 36px; background: #eaf7ff;
+}
+.payment-viewport::before, .payment-viewport::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: var(--payment-art); background-repeat: no-repeat; background-position: center;
+}
+.payment-viewport::before { background-size: cover; opacity: .22; }
+.payment-viewport::after { background-size: contain; }
+.payment-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px clamp(16px, 3vw, 44px); background: #ffffffb8; }
+.payment-top .brand { font-size: 21px; }
+.payment-top .brand-icon { width: 36px; height: 36px; }
+.payment-top .brand-sub { font-size: 7px; }
+.payment-top > a:last-child { font-size: 12px; font-weight: 800; min-height: 44px; display: flex; align-items: center; }
+.payment-stage { min-height: 0; display: grid; place-items: center; padding: 12px 16px; }
+.payment-bottom { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 24px; background: #ffffffc9; font-size: 10px; }
+.payment-bottom nav { display: flex; gap: 18px; }
+.payment-bottom a { display: flex; align-items: center; min-height: 32px; }
+.payment-viewport .demo-payment-card { width: min(100%, 410px); max-height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; margin: 0; padding: 22px; border-radius: 20px; border: 1px solid #ffffff; background: #fffffff5; box-shadow: 0 12px 44px #062e6626; text-align: left; }
+.payment-viewport .demo-chip { font-size: 9px; letter-spacing: .5px; padding: 4px 7px; }
+.payment-viewport .payment-state-icon { width: 32px; height: 32px; margin: 12px 0 0; }
+.payment-viewport .payment-state-icon svg { width: 18px; height: 18px; }
+.payment-viewport .demo-payment-card h1 { font-size: 21px; line-height: 1.2; margin: 10px 0 7px; letter-spacing: -.5px; }
+.payment-viewport .demo-payment-card > p { font-size: 12px; line-height: 1.5; margin: 0; }
+.payment-viewport .payment-amount { font-size: 27px; letter-spacing: -.7px; margin: 12px 0; line-height: 1.2; }
+.payment-viewport .demo-qr { width: 112px; padding: 9px; margin: 0; border-radius: 10px; text-align: center; }
+.payment-viewport .demo-qr > svg { width: 44px; height: 44px; }
+.payment-viewport .demo-qr b { font-size: 8px; padding: 3px; margin-top: 2px; }
+.payment-viewport .demo-qr span { font-size: 8px; margin-top: 3px; }
+.payment-viewport .demo-timer { justify-content: flex-start; font-size: 11px; margin: 8px 0; }
+.payment-viewport .demo-code-label { margin-top: 10px; font-size: 10px; }
+.payment-viewport .demo-code-label input { padding: 9px; margin: 5px 0 8px; height: 36px; font-size: 10px; }
+.payment-viewport .secondary-button, .payment-viewport .button { min-height: 44px; font-size: 12px; padding: 10px 12px; border-radius: 10px; }
+.payment-viewport .demo-payment-card > .button { margin-top: 8px; font-size: 12px; }
+.payment-viewport .text-button { min-height: 36px; font-size: 10px; padding: 8px 0; }
+.payment-viewport .payment-links { justify-content: flex-start; gap: 20px; margin-top: 8px; padding-top: 4px; }
+.payment-viewport .payment-links a { min-height: 36px; font-size: 10px; }
+.payment-viewport .demo-payment-card > small { font-size: 9px; margin-top: 5px; line-height: 1.4; overflow-wrap: anywhere; }
+.payment-viewport .demo-feedback { margin-top: 8px !important; padding: 8px; }
+.payment-viewport .payment-finish > svg { width: 20px; height: 20px; margin: 5px 0; }
+.payment-viewport .payment-finish .handwritten { font-size: 21px; margin: 0 0 12px; display: block; }
+@media (max-width: 600px) {
+  .payment-viewport { --payment-art: url('/images/pagamento-cartoon-chapeu-mobile.png'); grid-template-rows: 54px minmax(0, 1fr) 32px; }
+  .payment-viewport::after { background-position: center top; }
+  .payment-top { padding: 5px 12px; }
+  .payment-top .brand { font-size: 17px; gap: 6px; }
+  .payment-top .brand-icon { width: 30px; height: 30px; }
+  .payment-top .brand-icon svg { width: 22px; }
+  .payment-top .brand-sub { font-size: 6px; letter-spacing: 1px; }
+  .payment-top > a:last-child { font-size: 10px; }
+  .payment-stage { padding: 10px 14px; }
+  .payment-viewport .demo-payment-card { max-width: 350px; padding: 16px; border-radius: 17px; }
+  .payment-viewport .demo-payment-card h1 { font-size: 19px; }
+  .payment-viewport .payment-amount { font-size: 25px; margin: 9px 0; }
+  .payment-viewport .payment-state-icon { display: none; }
+  .payment-bottom { padding: 0 12px; font-size: 8px; }
+  .payment-bottom nav { gap: 10px; }
+}
+@media (max-height: 740px) {
+  .payment-viewport .demo-payment-card { padding: 14px 18px; }
+  .payment-viewport .payment-state-icon { display: none; }
+  .payment-viewport .demo-payment-card h1 { margin-top: 8px; }
+  .payment-viewport .demo-qr { width: 95px; padding: 6px; }
+  .payment-viewport .demo-qr > svg { width: 32px; height: 32px; }
+  .payment-viewport .demo-qr span { display: none; }
+  .payment-viewport .payment-links { margin-top: 3px; }
+}
+.payment-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 0 12px; padding: 12px; border-radius: 12px; background: #eef7fc; }
+.payment-summary-label { font-size: 10px; color: #536c86; }
+.payment-viewport .payment-summary .payment-amount { margin: 4px 0; }
+.payment-viewport .payment-summary .demo-timer { margin: 6px 0 0; }
+.payment-summary-status { color: #098953; }
+.payment-viewport::before { filter: blur(24px); clip-path: inset(0); }
+.payment-viewport::after { mask-image: linear-gradient(to bottom, #000 85%, transparent 100%); }
+.payment-viewport .demo-payment-card { background: #fff; }
+.pix-card-brand { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+.pix-card-brand > span { color: #00a99e; font-size: 25px; line-height: 1; }
+.pix-card-brand > b { font-size: 21px; letter-spacing: -.8px; font-weight: 700; }
+.pix-card-brand > small { font-size: 9px; color: #667d93; margin-left: auto; }

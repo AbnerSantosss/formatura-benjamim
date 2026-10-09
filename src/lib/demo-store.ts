@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { DemoData, DemoStatus, emptyDemo, parseDemo, transition } from './demo-model';
+import { DemoData, DemoStatus, OrderMode, assertNumbersAvailable, emptyDemo, parseDemo, productFor, transition, validateOrder } from './demo-model';
 
 const KEY = 'benjamim.frontend-demo.v1';
 const AUTH = 'benjamim.frontend-demo.session';
@@ -30,13 +30,14 @@ function write(data: DemoData) {
   try { localStorage.setItem(KEY, JSON.stringify(data)); window.dispatchEvent(new Event(EVENT)); }
   catch { throw new Error('O navegador bloqueou o armazenamento local. Permita o armazenamento para testar a demonstração.'); }
 }
-export function createDemoPayment(amount: number) {
-  if (![500, 1000, 2500, 5000].includes(amount)) throw new Error('Escolha um dos valores disponíveis.');
+export function createDemoPayment(amount: number, mode: OrderMode = 'extra', numbers: number[] = []) {
+  validateOrder(amount, mode, numbers);
   const data = parseDemo(read());
-  if (data.payments.length >= 100) throw new Error('Limite de 100 simulações atingido. Limpe os testes no painel.');
+  if (data.payments.length >= 1000) throw new Error('Limite de 1.000 pedidos de teste atingido. Limpe os testes no painel.');
   const id = `demo-${crypto.randomUUID()}`;
   const createdAt = Date.now();
-  write({ ...data, payments: [{ id, amount, createdAt, expiresAt: createdAt + 600000, status: 'pending' }, ...data.payments] });
+  assertNumbersAvailable(data, numbers, createdAt);
+  write({ ...data, payments: [{ id, amount, mode, productId: productFor(mode).id, numbers: [...numbers].sort((a,b) => a-b), createdAt, expiresAt: createdAt + 600000, status: 'pending' }, ...data.payments] });
   return id;
 }
 export function changeDemoStatus(id: string, next: DemoStatus) { write(transition(parseDemo(read()), id, next, Date.now())); }

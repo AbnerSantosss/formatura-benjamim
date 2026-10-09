@@ -2,7 +2,9 @@
 
 Leia integralmente `CODEX_INSTRUCTIONS.md` antes de alterar arquivos. As referências visuais estão em `referencias/` e a fotografia original do Benjamim deve ser utilizada na interface.
 
-Sua tarefa é implementar o software funcional, executar testes e resolver erros, não escrever somente um plano. Não exponha dados pessoais ou credenciais. A landing de produção deve funcionar como vaquinha familiar sem sorteio pago; os layouts originais contêm textos de rifa apenas como referências visuais desatualizadas.
+Sua tarefa é implementar o software funcional, executar testes e resolver erros, não escrever somente um plano. Não exponha dados pessoais ou credenciais.
+
+**Atualização 2026-10-09.** A direção de produto mudou: o site opera **números + sorteio**, conforme `wiki/decisoes/001-rifa-com-numeros-e-sorteio.md` (com a ressalva legal registrada lá). O parágrafo original "vaquinha familiar sem sorteio pago" deixou de valer. Leia `wiki/index.md` antes de qualquer alteração e siga `CLAUDE.md` (design da landing, checkout e obrigado intocável; subagentes só em Haiku 5.5 ou Opus; respostas em pt-BR).
 
 Ao finalizar, liste o que foi implementado, como executar, status dos testes e pendências para conectar o Mercado Pago em produção.
 

@@ -4,6 +4,7 @@ import '@fontsource-variable/nunito';
 import '@fontsource/caveat/600.css';
 import './globals.css';
 import './demo.css';
+import './order-flow.css';
 
 export const metadata: Metadata = {
   title: 'Um pequeno formando, um grande sonho · Benjamim',

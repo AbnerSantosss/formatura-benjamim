@@ -17,3 +17,10 @@
     padding: clamp(210px, 45vw, 460px) 14px 36px;
   }
 }
+@media (max-width: 600px) {
+  .demo-payment-main {
+    background-image: url('/images/pagamento-cartoon-chapeu-mobile.png');
+    background-size: 100% auto;
+    padding-top: 67vw;
+  }
+}

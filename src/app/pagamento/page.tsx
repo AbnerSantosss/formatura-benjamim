@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import { Header, Footer } from '@/components/shared';
+import PaymentFrame from '@/components/payment-frame';
 import DemoPayment from '@/components/demo-payment';
 export default function Pagamento() {
-  return <><Header checkout /><main id="conteudo" className="demo-payment-main"><Suspense fallback={<p>Carregando simulação…</p>}><DemoPayment /></Suspense></main><Footer /></>;
+  return <PaymentFrame><Suspense fallback={<div className="demo-payment-card">Carregando simulação.</div>}><DemoPayment /></Suspense></PaymentFrame>;
 }
