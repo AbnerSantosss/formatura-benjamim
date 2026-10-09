@@ -53,3 +53,4 @@ grep -rn "MP_ACCESS_TOKEN" src/app src/components ; echo "(esperado: nada)"
 
 ## Desvios registrados
 - 2026-10-09: o campo de preço do produto é `Product.unitCents` (não `unitPriceCents`), e a campanha única tem id `main`. Ver [[decisoes/009-ajustes-de-consistencia-do-schema]].
+- (2026-10-09) Executada com a documentação oficial do Mercado Pago; [[integracoes/mercado-pago]] foi corrigida. Contratos reais e pendências em [[decisoes/010-contratos-reais-da-janela-b]] (seção "Gateways").
