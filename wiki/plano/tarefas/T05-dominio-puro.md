@@ -36,3 +36,6 @@ grep -rn "localStorage\|window\." src/domain/ ; echo "(esperado: nada)"
 ## Não fazer
 - Não mudar valores de constantes nem a regra `amount >= 500 && amount % 500 === 0`.
 - Não tocar em componentes além do que o re-export exige.
+
+## Desvios registrados
+- 2026-10-09: `demo-model.ts` mantém as versões do protótipo das funções com formato próprio (status minúsculo, `now` em ms); o domínio ganhou `occupiedNumbers`, `assertNumbersAvailable`, `orderTotals` e a transição `PENDING → CANCELED`. Ver [[decisoes/009-ajustes-de-consistencia-do-schema]].

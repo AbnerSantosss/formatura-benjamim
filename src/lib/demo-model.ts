@@ -1,7 +1,13 @@
+// As regras puras moraram aqui no protótipo e agora vivem em `src/domain/`.
+// Este arquivo reexporta o domínio e mantém só o formato do protótipo (localStorage, status e
+// modos em minúsculas, horários em milissegundos) que os componentes ainda importam.
+// As declarações locais abaixo têm precedência sobre os nomes iguais vindos de `export *`.
+export * from '@/domain/orders';
+export * from '@/domain/money';
+import { NUMBER_UNIT_CENTS, validateOrder as validateDomainOrder } from '@/domain/orders';
+
 export type DemoStatus = 'pending' | 'approved' | 'expired' | 'refunded';
 export type OrderMode = 'numbers' | 'extra';
-export const TOTAL_NUMBERS = 5000;
-export const NUMBER_UNIT_CENTS = 50;
 export type DemoProduct = {
   id: string;
   title: string;
@@ -49,41 +55,17 @@ export const modeLabels: Record<OrderMode, string> = {
   numbers: 'Números das cestas',
   extra: 'Colaboração avulsa',
 };
-export const formatNumber = (number: number) => String(number).padStart(String(TOTAL_NUMBERS).length, '0');
 export const productFor = (mode: OrderMode) => demoProducts.find((product) => product.mode === mode)!;
 export const paymentProduct = (payment: DemoPayment) => productFor(payment.mode || 'extra');
-export function numberAllowance(amount: number) {
-  return amount >= 500 && amount % 500 === 0 ? amount / NUMBER_UNIT_CENTS : 0;
-}
-export function randomAvailableNumbers(count: number, occupied: Set<number>, random = Math.random) {
-  if (!Number.isInteger(count) || count < 1) return [];
-  const pool = Array.from({ length: TOTAL_NUMBERS }, (_, index) => index + 1).filter(
-    (number) => !occupied.has(number),
-  );
-  if (count > pool.length) throw new Error('Não há números disponíveis suficientes para este pacote.');
-  // Partial Fisher-Yates: sample without replacement from the entire available list.
-  for (let index = 0; index < count; index++) {
-    const pick = index + Math.floor(random() * (pool.length - index));
-    [pool[index], pool[pick]] = [pool[pick], pool[index]];
-  }
-  return pool.slice(0, count).sort((a, b) => a - b);
-}
+const domainMode = { numbers: 'NUMBERS', extra: 'EXTRA' } as const;
+const noOccupied = new Set<number>();
+// No protótipo o produto é sempre o do próprio modo e a disponibilidade é conferida à parte
+// (`assertNumbersAvailable`), então a regra do domínio recebe produto ativo e nenhum ocupado.
 export function validateOrder(amount: number, mode: OrderMode, numbers: number[]) {
-  if (!Number.isSafeInteger(amount) || amount < 500 || amount > 100000000)
-    throw new Error('Informe um valor a partir de R$ 5.');
-  if (mode === 'extra') {
-    if (numbers.length) throw new Error('Colaboração avulsa não inclui números.');
-    return;
-  }
-  const allowance = numberAllowance(amount);
-  if (!allowance || allowance > TOTAL_NUMBERS)
-    throw new Error('Escolha pacotes de R$ 5: cada pacote dá 10 números.');
-  if (
-    numbers.length !== allowance ||
-    new Set(numbers).size !== numbers.length ||
-    numbers.some((number) => !Number.isInteger(number) || number < 1 || number > TOTAL_NUMBERS)
-  )
-    throw new Error(`Escolha exatamente ${allowance} números diferentes.`);
+  validateDomainOrder(amount, domainMode[mode], numbers, noOccupied, {
+    mode: domainMode[mode],
+    active: true,
+  });
 }
 export function parseDemo(raw: string | null): DemoData {
   try {
