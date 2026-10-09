@@ -1,7 +1,13 @@
 'use client';
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Check, Shuffle, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Check, Sparkles, Trash2 } from 'lucide-react';
 import { TOTAL_NUMBERS, formatNumber, randomAvailableNumbers } from '@/lib/demo-model';
+
+// Sorteio animado: as fichas giram e travam uma a uma. Acima de ROLL_CHIPS, o resto vira "+N".
+const ROLL_CHIPS = 20;
+const ROLL_TICK_MS = 55;
+const ROLL_SPIN_TICKS = 8;
+const randomNumber = () => 1 + Math.floor(Math.random() * TOTAL_NUMBERS);
 
 export default function NumberPicker({
   selected,
@@ -17,6 +23,16 @@ export default function NumberPicker({
   ready: boolean;
 }) {
   const [page, setPage] = useState(0);
+  // `rolling`: sorteio em andamento. `drawn`: último conjunto sorteado, mostrado enquanto for a escolha.
+  const [rolling, setRolling] = useState<{ final: number[]; faces: number[]; locked: number } | null>(null);
+  const [drawn, setDrawn] = useState<number[] | null>(null);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearInterval(timer.current);
+    },
+    [],
+  );
   const pages = Math.ceil(TOTAL_NUMBERS / 100);
   const start = page * 100 + 1;
   function toggle(number: number) {
@@ -30,11 +46,39 @@ export default function NumberPicker({
       if (!occupied.has(number) && !chosen.includes(number)) chosen.push(number);
     onChange(chosen.sort((a, b) => a - b));
   }
-  function selectRandomly() {
-    const chosen = randomAvailableNumbers(allowance, occupied);
+  function applyDraw(chosen: number[]) {
     onChange(chosen);
+    setDrawn(chosen);
     if (chosen.length) setPage(Math.floor((chosen[0] - 1) / 100));
   }
+  function selectRandomly() {
+    if (rolling) return;
+    const chosen = randomAvailableNumbers(allowance, occupied);
+    if (!chosen.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      applyDraw(chosen);
+      return;
+    }
+    const chips = Math.min(chosen.length, ROLL_CHIPS);
+    const ticksPerLock = chips > 10 ? 1 : 2;
+    let tick = 0;
+    onChange([]);
+    setRolling({ final: chosen, faces: Array.from({ length: chips }, randomNumber), locked: 0 });
+    timer.current = setInterval(() => {
+      tick += 1;
+      const locked = Math.max(0, Math.floor((tick - ROLL_SPIN_TICKS) / ticksPerLock));
+      if (locked >= chips) {
+        if (timer.current) clearInterval(timer.current);
+        timer.current = null;
+        setRolling(null);
+        applyDraw(chosen);
+        return;
+      }
+      setRolling({ final: chosen, faces: Array.from({ length: chips }, randomNumber), locked });
+    }, ROLL_TICK_MS);
+  }
+  const showDrawn = !rolling && drawn !== null && drawn.length > 0 && drawn.join() === selected.join();
+  const chips = rolling ? rolling.faces.length : showDrawn ? Math.min(drawn.length, ROLL_CHIPS) : 0;
+  const chipTotal = rolling ? rolling.final.length : showDrawn ? drawn.length : 0;
   return (
     <div className="number-picker">
       <div className="number-picker-heading">
@@ -46,6 +90,42 @@ export default function NumberPicker({
           {selected.length} / {allowance}
         </strong>
       </div>
+      <div className="number-draw">
+        <button
+          type="button"
+          className="random-number-button"
+          onClick={selectRandomly}
+          disabled={!ready || !allowance || rolling !== null || TOTAL_NUMBERS - occupied.size < allowance}
+        >
+          <Sparkles size={18} /> {rolling ? 'Gerando seus números…' : 'Gerar meus números'}
+        </button>
+        <p className="random-number-hint">
+          Sem tempo para escolher? Sorteamos {allowance || 'os'} números livres para você. Um novo sorteio
+          substitui a escolha atual.
+        </p>
+        {chips > 0 && (
+          <div className={rolling ? 'number-roller rolling' : 'number-roller'}>
+            <b role="status">{rolling ? 'Sorteando seus números…' : 'Seus números da sorte'}</b>
+            <div aria-hidden="true">
+              {Array.from({ length: chips }, (_, index) => {
+                const settled = !rolling || index < rolling.locked;
+                const value = rolling
+                  ? settled
+                    ? rolling.final[index]
+                    : rolling.faces[index]
+                  : drawn![index];
+                return (
+                  <span key={index} className={settled ? 'settled' : ''}>
+                    {formatNumber(value)}
+                  </span>
+                );
+              })}
+              {chipTotal > chips && <span className="settled more">+{chipTotal - chips}</span>}
+            </div>
+          </div>
+        )}
+      </div>
+      <p className="number-draw-divider">ou escolha na tabela</p>
       <div className="number-pagination">
         <button
           type="button"
@@ -92,7 +172,9 @@ export default function NumberPicker({
                   key={number}
                   aria-label={`Número ${formatNumber(number)} ${unavailable ? 'indisponível' : picked ? 'selecionado' : 'livre'}`}
                   aria-pressed={picked}
-                  disabled={!ready || unavailable || (!picked && selected.length >= allowance)}
+                  disabled={
+                    !ready || rolling !== null || unavailable || (!picked && selected.length >= allowance)
+                  }
                   className={unavailable ? 'unavailable' : picked ? 'picked' : ''}
                   onClick={() => toggle(number)}
                 >
@@ -119,17 +201,9 @@ export default function NumberPicker({
       <div className="number-tools">
         <button
           type="button"
-          className="random-number-button"
-          onClick={selectRandomly}
-          disabled={!ready || !allowance || TOTAL_NUMBERS - occupied.size < allowance}
-        >
-          <Shuffle size={18} /> Selecionar aleatoriamente
-        </button>
-        <button
-          type="button"
           className="secondary-button"
           onClick={complete}
-          disabled={!ready || selected.length === allowance || !allowance}
+          disabled={!ready || rolling !== null || selected.length === allowance || !allowance}
         >
           <Check size={16} /> Completar com disponíveis
         </button>
@@ -137,14 +211,11 @@ export default function NumberPicker({
           type="button"
           className="clear-number-button"
           onClick={() => onChange([])}
-          disabled={!selected.length}
+          disabled={rolling !== null || !selected.length}
         >
           <Trash2 size={16} /> Limpar escolha
         </button>
       </div>
-      <p className="random-number-hint">
-        A seleção aleatória escolhe um novo conjunto e substitui os números selecionados.
-      </p>
       <p className="number-count" role="status">
         {selected.length === allowance && allowance
           ? 'Sua escolha está completa.'

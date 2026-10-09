@@ -70,6 +70,17 @@ export default function Checkout({
   const [busy, setBusy] = useState(false);
   const allowance = mode === 'numbers' ? numberAllowance(amount) : 0;
   const product = productFor(mode);
+  // Dados e Pix só aparecem com a escolha completa; na colaboração avulsa não há o que escolher.
+  const showCheckout = mode === 'extra' || (allowance > 0 && selected.length === allowance);
+  const detailsRef = useRef<HTMLElement | null>(null);
+  const wasShown = useRef(showCheckout);
+  useEffect(() => {
+    if (showCheckout && !wasShown.current && mode === 'numbers') {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      detailsRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    }
+    wasShown.current = showCheckout;
+  }, [showCheckout, mode]);
   useEffect(() => {
     selectedRef.current = selected;
   }, [selected]);
@@ -240,119 +251,136 @@ export default function Checkout({
             />
           )}
         </section>
-        <section className="checkout-section">
-          <h2>
-            <span className="step-number">2</span> Seus dados
-          </h2>
-          <p className="field-note">Use somente dados fictícios nesta demonstração.</p>
-          <div className="form-grid">
-            <label>
-              Nome completo
-              <input
-                autoComplete="off"
-                name="name"
-                placeholder="Como você se chama?"
-                required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </label>
-            <label>
-              CPF
-              <input
-                name="cpf"
-                autoComplete="off"
-                inputMode="numeric"
-                placeholder="000.000.000-00"
-                value={cpf}
-                onChange={(event) => setCpf(maskCpf(event.target.value))}
-                required
-              />
-            </label>
-            <label>
-              WhatsApp
-              <input
-                name="phone"
-                autoComplete="off"
-                inputMode="tel"
-                placeholder="(00) 00000-0000"
-                value={phone}
-                onChange={(event) => setPhone(maskPhone(event.target.value))}
-                required
-              />
-            </label>
-            <label>
-              E-mail
-              <input
-                name="email"
-                autoComplete="off"
-                type="email"
-                placeholder="voce@exemplo.com"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </label>
-          </div>
-          <p className="data-note">
-            <LockKeyhole size={14} /> Dados pessoais não são enviados nem salvos. Pedido, números, valor,
-            datas e status do teste ficam neste navegador. <Link href="/privacidade">Privacidade</Link>
-          </p>
-        </section>
-        <section className="checkout-section payment-section">
-          <h2>
-            <span className="step-number">3</span> Resumo e Pix
-          </h2>
-          <div className="payment-method">
-            <Landmark size={32} />
-            <div>
-              <b>Pix · demonstração</b>
-              <span>Experimente o fluxo, sem movimentar dinheiro.</span>
-            </div>
-            <Check size={20} />
-          </div>
-          <div className="order-summary">
-            <div>
-              <span>{product.title}</span>
-              <b>{mode === 'numbers' ? `${selected.length} números` : 'Valor livre'}</b>
-            </div>
-            <div className="order-total">
-              <span>Total simulado</span>
-              <strong aria-live="polite">{money(amount)}</strong>
-            </div>
-          </div>
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
+        {!showCheckout && (
+          <div className="checkout-locked">
+            <p>
+              <LockKeyhole size={16} /> Escolha {allowance ? `seus ${allowance} números` : 'um pacote'} para
+              continuar com seus dados e o Pix.
             </p>
-          )}
-          <button
-            className="button wide"
-            type="submit"
-            disabled={
-              busy ||
-              blocked ||
-              !ready ||
-              (mode === 'numbers' && (!allowance || selected.length !== allowance))
-            }
-          >
-            <Heart size={19} />{' '}
-            {busy
-              ? 'Abrindo simulação…'
-              : mode === 'numbers' && selected.length !== allowance
-                ? `Escolha mais ${Math.max(0, allowance - selected.length)} números`
-                : mode === 'numbers'
-                  ? 'Quero garantir meus números!'
-                  : 'Quero ajudar esse sonho!'}
-          </button>
-          <p className="checkout-notice">
-            <Info size={17} />
-            <span>
-              Nenhum Pix real será gerado. Os números serão reservados no teste e confirmados somente após a
-              aprovação simulada.
-            </span>
-          </p>
-        </section>
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
+          </div>
+        )}
+        {showCheckout && (
+          <>
+            <section className="checkout-section checkout-reveal" ref={detailsRef}>
+              <h2>
+                <span className="step-number">2</span> Seus dados
+              </h2>
+              <p className="field-note">Use somente dados fictícios nesta demonstração.</p>
+              <div className="form-grid">
+                <label>
+                  Nome completo
+                  <input
+                    autoComplete="off"
+                    name="name"
+                    placeholder="Como você se chama?"
+                    required
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </label>
+                <label>
+                  CPF
+                  <input
+                    name="cpf"
+                    autoComplete="off"
+                    inputMode="numeric"
+                    placeholder="000.000.000-00"
+                    value={cpf}
+                    onChange={(event) => setCpf(maskCpf(event.target.value))}
+                    required
+                  />
+                </label>
+                <label>
+                  WhatsApp
+                  <input
+                    name="phone"
+                    autoComplete="off"
+                    inputMode="tel"
+                    placeholder="(00) 00000-0000"
+                    value={phone}
+                    onChange={(event) => setPhone(maskPhone(event.target.value))}
+                    required
+                  />
+                </label>
+                <label>
+                  E-mail
+                  <input
+                    name="email"
+                    autoComplete="off"
+                    type="email"
+                    placeholder="voce@exemplo.com"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </label>
+              </div>
+              <p className="data-note">
+                <LockKeyhole size={14} /> Dados pessoais não são enviados nem salvos. Pedido, números, valor,
+                datas e status do teste ficam neste navegador. <Link href="/privacidade">Privacidade</Link>
+              </p>
+            </section>
+            <section className="checkout-section payment-section checkout-reveal">
+              <h2>
+                <span className="step-number">3</span> Resumo e Pix
+              </h2>
+              <div className="payment-method">
+                <Landmark size={32} />
+                <div>
+                  <b>Pix · demonstração</b>
+                  <span>Experimente o fluxo, sem movimentar dinheiro.</span>
+                </div>
+                <Check size={20} />
+              </div>
+              <div className="order-summary">
+                <div>
+                  <span>{product.title}</span>
+                  <b>{mode === 'numbers' ? `${selected.length} números` : 'Valor livre'}</b>
+                </div>
+                <div className="order-total">
+                  <span>Total simulado</span>
+                  <strong aria-live="polite">{money(amount)}</strong>
+                </div>
+              </div>
+              {error && (
+                <p className="form-error" role="alert">
+                  {error}
+                </p>
+              )}
+              <button
+                className="button wide"
+                type="submit"
+                disabled={
+                  busy ||
+                  blocked ||
+                  !ready ||
+                  (mode === 'numbers' && (!allowance || selected.length !== allowance))
+                }
+              >
+                <Heart size={19} />{' '}
+                {busy
+                  ? 'Abrindo simulação…'
+                  : mode === 'numbers' && selected.length !== allowance
+                    ? `Escolha mais ${Math.max(0, allowance - selected.length)} números`
+                    : mode === 'numbers'
+                      ? 'Quero garantir meus números!'
+                      : 'Quero ajudar esse sonho!'}
+              </button>
+              <p className="checkout-notice">
+                <Info size={17} />
+                <span>
+                  Nenhum Pix real será gerado. Os números serão reservados no teste e confirmados somente após
+                  a aprovação simulada.
+                </span>
+              </p>
+            </section>
+          </>
+        )}
         <p className="terms-note">
           Uma iniciativa da família do Benjamim.
           <br />

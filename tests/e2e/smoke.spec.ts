@@ -126,7 +126,7 @@ test('contribuir mostra a grade, "aleatório" marca 10 números e o envio abre o
   const grid = page.getByRole('group', { name: 'Tabela 10 por 10 de números' });
   await expect(grid).toBeVisible();
   await expect(grid.getByRole('button')).toHaveCount(100);
-  const random = page.getByRole('button', { name: 'Selecionar aleatoriamente' });
+  const random = page.getByRole('button', { name: 'Gerar meus números' });
   // Habilita quando a lista de números ocupados chegou do servidor.
   await expect(random).toBeEnabled();
 
