@@ -44,3 +44,9 @@ Teste manual em `DEMO_MODE=true`: criar pedido, ver QR, clicar "Simular aprovaç
 - Não mostrar os botões de demo quando `demo` for falso.
 - Não ler `localStorage`/`sessionStorage` para dados do pedido.
 - Não alterar CSS, classes, estrutura ou textos.
+
+## Desvios registrados
+- (2026-10-09) Arquivo a mais: `src/components/payment-status-poller.tsx` (consulta `GET /api/pedidos/[id]/status` a cada 5 s, para com a aba oculta, nunca confirma pagamento).
+- (2026-10-09) `payment-frame.tsx` tem dois conjuntos de texto: `demoCopy` (igual ao protótipo) e `realCopy` (sem selo de simulação, "Pix copia e cola", "Copiar código Pix", "Gerar novo Pix"). Os textos de produção aguardam aprovação do dono.
+- (2026-10-09) O QR real usa `<img>` com estilo inline dentro da moldura existente; nenhum CSS foi alterado. O botão "Simular expiração" continua só visual e o link "Ver no backoffice" foi mantido.
+- (2026-10-09) Removidos `src/app/pagamento/page.tsx` e `src/components/demo-payment.tsx`.
