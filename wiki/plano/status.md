@@ -27,7 +27,7 @@ tags: [plano, status]
 | T14 | concluída | 2026-10-09 06:37 |
 | T15 | concluída | 2026-10-09 06:33 |
 | T16 | concluída | 2026-10-09 07:01 |
-| T17 | pendente | - |
+| T17 | concluída | 2026-10-09 07:23 |
 | T18 | pendente | - |
 | T19 | pendente | - |
 | T20 | pendente | - |

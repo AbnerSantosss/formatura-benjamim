@@ -32,3 +32,8 @@ Manual: `npm run admin:create` → login com o admin do `.env` → cai em "troca
 - Não alterar o visual do card de login além dos campos pedidos.
 - Não usar `window.confirm`/`alert`.
 - Não deixar o painel acessível enquanto `mustChangePassword` for verdadeiro.
+
+## Desvios registrados
+- (2026-10-09) `src/app/demo.css` ganhou 44 linhas, só com as classes novas `.login-card`, `.login-options` e `.login-hint` (a T13 move para `globals.css`).
+- (2026-10-09) `src/lib/demo-store.ts` ainda exporta `demoLogin`, `signInDemo`, `signOutDemo` e `useDemoSession`, sem uso; saem na limpeza da T19.
+- (2026-10-09) O card de login e a sidebar ainda mostram "BACKOFFICE · DEMONSTRAÇÃO" e "Protótipo frontend"; a T19 troca.

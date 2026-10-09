@@ -5,12 +5,9 @@ import {
   Check,
   Clock3,
   Download,
-  Eye,
-  EyeOff,
   GraduationCap,
   Heart,
   LayoutDashboard,
-  LogOut,
   Search,
   Settings,
   Target,
@@ -19,17 +16,7 @@ import {
   ExternalLink,
   Package,
 } from 'lucide-react';
-import {
-  changeDemoStatus,
-  demoLogin,
-  resetDemo,
-  saveDemoGoal,
-  signInDemo,
-  signOutDemo,
-  useDemo,
-  useDemoClock,
-  useDemoSession,
-} from '@/lib/demo-store';
+import { changeDemoStatus, resetDemo, saveDemoGoal, useDemo, useDemoClock } from '@/lib/demo-store';
 import {
   DemoStatus,
   demoTotals,
@@ -40,105 +27,22 @@ import {
   formatNumber,
 } from '@/lib/demo-model';
 import { money } from '@/lib/campaign';
+import { AdminAccount, AdminLogoutButton } from './admin/admin-shell';
 import ProductCatalog from './product-catalog';
 
 export default function Backoffice() {
-  const session = useDemoSession();
   const { data, ready } = useDemo();
   const now = useDemoClock();
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [section, setSection] = useState('overview');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [modality, setModality] = useState('all');
   const [confirmReset, setConfirmReset] = useState(false);
   const [notice, setNotice] = useState('');
-  if (session === null || !ready)
+  if (!ready)
     return (
       <main id="conteudo" className="admin-loading">
         Carregando demonstração…
-      </main>
-    );
-  function login(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const fields = new FormData(event.currentTarget);
-    try {
-      if (!signInDemo(String(fields.get('username')), String(fields.get('password'))))
-        setError('Usuário ou senha incorretos. Use o acesso de demonstração abaixo.');
-      else setError('');
-    } catch (issue) {
-      setError((issue as Error).message);
-    }
-  }
-  if (session !== 'demo')
-    return (
-      <main id="conteudo" className="admin-login">
-        <div className="login-story">
-          <Link href="/" className="admin-brand">
-            <GraduationCap /> Benjamim<span>FORMATURA DO ABC</span>
-          </Link>
-          <div>
-            <span className="eyebrow">CADA GESTO CONTA</span>
-            <h1>
-              Uma grande conquista.
-              <br />
-              <em>Muitos pequenos carinhos.</em>
-            </h1>
-            <p>Acompanhe as contribuições e cuide de cada detalhe dessa história especial.</p>
-            <Heart size={74} />
-          </div>
-          <small>Iniciativa da família · Formatura do Benjamim</small>
-        </div>
-        <div className="login-side">
-          <form className="login-card" onSubmit={login}>
-            <span className="demo-chip">BACKOFFICE · DEMONSTRAÇÃO</span>
-            <h2>Que bom ter você aqui.</h2>
-            <p>Entre para conhecer o painel da campanha.</p>
-            <label>
-              Usuário
-              <input name="username" autoComplete="username" placeholder="Seu usuário" required />
-            </label>
-            <label>
-              Senha
-              <div className="password-field">
-                <input
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="Sua senha"
-                  required
-                />
-                <button
-                  type="button"
-                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
-                </button>
-              </div>
-            </label>
-            {error && (
-              <p role="alert" className="form-error">
-                {error}
-              </p>
-            )}
-            <button type="submit" className="button wide">
-              Entrar no painel
-            </button>
-            <div className="demo-credentials">
-              <b>Acesso de demonstração</b>
-              <span>
-                Usuário: <code>{demoLogin.username}</code>
-              </span>
-              <span>
-                Senha: <code>{demoLogin.password}</code>
-              </span>
-              <small>Login ilustrativo, sem autenticação real. Não use uma senha pessoal.</small>
-            </div>
-            <Link href="/">Voltar à campanha</Link>
-          </form>
-        </div>
       </main>
     );
   const totals = demoTotals(data, now);
@@ -222,14 +126,7 @@ export default function Backoffice() {
           <Link href="/" target="_blank">
             <ExternalLink size={17} /> Ver campanha
           </Link>
-          <button
-            onClick={() => {
-              signOutDemo();
-              setNotice('');
-            }}
-          >
-            <LogOut size={17} /> Sair do painel
-          </button>
+          <AdminLogoutButton />
           <small>
             Protótipo frontend
             <br />
@@ -249,12 +146,7 @@ export default function Backoffice() {
                   ? 'Pedidos'
                   : 'Visão geral'}
           </span>
-          <div className="admin-account">
-            <span>A</span>
-            <b>
-              Administrador<small>Acesso de demonstração</small>
-            </b>
-          </div>
+          <AdminAccount />
         </header>
         <div className="admin-content">
           <div className="admin-title">
