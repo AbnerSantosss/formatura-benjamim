@@ -34,4 +34,4 @@ tags: [plano, status]
 | T21 | concluída | 2026-10-09 08:42 |
 | T22 | concluída | 2026-10-09 09:18 |
 | T23 | concluída | 2026-10-09 09:32 |
-| T24 | preparada; aguardando o dono no passo 1 (VPS, DNS, Docker) | 2026-10-09 10:05 |
+| T24 | repo público, túnel e rota criados; stack do Portainer aguardando o dono carregar as variáveis e o token do túnel | 2026-10-09 |

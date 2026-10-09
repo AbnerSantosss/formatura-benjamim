@@ -219,3 +219,27 @@ Não verificado: VPS Linux real, memória durante o build em 2 GB, certificado p
 
 ## Checklist de ida ao ar
 Ver [[operacao/checklist-producao]].
+
+## Caminho B (em uso): Portainer + túnel Cloudflare
+
+Usado quando o servidor já tem Portainer e os sites saem por túnel Cloudflare. Não usa o Caddy nem publica porta no host.
+
+### O que roda
+Stack `benjamim` criada a partir do repositório público `https://github.com/AbnerSantosss/formatura-benjamim`, ref `refs/heads/main`, arquivo `docker-compose.portainer.yml`:
+- `db`: Postgres 16, sem porta publicada.
+- `migrate`: roda uma vez a cada deploy e termina (migrações, seed e, se houver `ADMIN_BOOTSTRAP_PASSWORD`, `admin:create`). Tudo idempotente.
+- `app`: a imagem `runner`. Só sobe depois que `migrate` termina sem erro.
+- `cloudflared`: liga a stack ao túnel `benjamim`. No Cloudflare, a rota `benjamim.proxserverabner.site` aponta para `http://app:3000`.
+
+### Variáveis
+O repositório é público: nenhum valor fica nele. As variáveis ficam na própria stack do Portainer (Environment variables). As mesmas do Caminho A, com três diferenças: `SITE_DOMAIN` não existe, `NODE_ENV` e `DEMO_MODE` são fixos no compose, e entra `CLOUDFLARE_TUNNEL_TOKEN` (Cloudflare > Networking > Tunnels > benjamim).
+O arquivo local `.env.portainer` (ignorado pelo git) guarda uma cópia do que foi carregado; na criação da stack, use "Load variables from .env file".
+
+### Atualizar
+`git push origin main` e, no Portainer, stack `benjamim` > "Pull and redeploy". Se `NEXT_PUBLIC_SITE_URL` mudar, a imagem precisa ser reconstruída.
+
+### Cuidados
+- `POSTGRES_PASSWORD` não muda depois do primeiro deploy (o volume guarda a antiga).
+- Depois do primeiro login do administrador, apague `ADMIN_BOOTSTRAP_PASSWORD` das variáveis da stack.
+- Webhook do Mercado Pago: `https://benjamim.proxserverabner.site/api/webhooks/mercadopago`.
+- Expiração de reservas e backup (seção "Tarefas agendadas" do Caminho A) ainda precisam de um agendador no servidor.
