@@ -67,3 +67,7 @@ Nenhuma transação financeira foi executada. O código de demonstração não �
 - Navegador: checkout com dados fictícios, aprovação de R$ 25 no painel, senha incorreta/correta, filtro, estorno, cópia do código, expiração, persistência após recarga e saída da sessão.
 - Landing, checkout, pagamento e painel sem overflow horizontal nas larguras 360, 390, 768, 1024 e 1440 px após correção do tablet. Conferência visual desktop/mobile e menu/âncora dos kits.
 - Capturas em `revisao/`. Sem teste de gateway real; não há integração nesta entrega.
+
+## Fundo cartoon do pagamento
+
+A tela `/pagamento` usa `public/images/pagamento-cartoon-v1.png`, gerado com a ferramenta integrada image_gen a partir do cenário e da fotografia original. A ilustração traz Benjamim, escola, livros, capelo e blocos ABC; centro claro para a leitura do cartão e enquadramento próprio no mobile. O prompt completo está em `revisao/pagamento-cartoon-prompt.txt`.
