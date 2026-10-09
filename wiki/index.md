@@ -36,6 +36,7 @@ Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[de
 - [[decisoes/009-ajustes-de-consistencia-do-schema]] — meta R$ 2.500, `unitCents`, campanha `main` e outras divergências do plano resolvidas na execução.
 - [[decisoes/010-contratos-reais-da-janela-b]] — build sem segredos de produção, assinaturas reais de pedidos, auth e e-mail; pendências do dono.
 - [[decisoes/011-progress-e-footer-recebem-dados-por-prop]] — `Progress` e `Footer` deixam de ler `campaign.ts`; cada página repassa os dados do banco.
+- [[decisoes/012-snapshots-visuais-a-partir-do-estado-validado]] — snapshots do Playwright nascem do estado atual, já comparado com a baseline; `revisao/baseline/` segue como referência humana.
 
 ## Integrações
 - [[integracoes/mercado-pago]] — Orders API Pix, webhook `x-signature`, estorno, sandbox.
