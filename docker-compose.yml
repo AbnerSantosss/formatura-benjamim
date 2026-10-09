@@ -1,3 +1,5 @@
+# Produção: wiki/operacao/deploy.md (Caminho A). Em desenvolvimento só se usa `docker compose up -d db`
+# (e o perfil `dev` para o mailpit).
 services:
   db:
     image: postgres:16-alpine
@@ -14,14 +16,34 @@ services:
       timeout: 3s
       retries: 20
   app:
-    build: .
+    build:
+      context: .
+      target: runner
+      args:
+        # Embutido no bundle em tempo de build; vem do .env. Sem ele o build para com mensagem clara.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
     restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_URL: postgresql://benjamim:${POSTGRES_PASSWORD:-benjamim}@db:5432/benjamim
     depends_on:
       db: { condition: service_healthy }
+    # Só `expose`: o app nunca publica porta; quem atende a internet é o Caddy (ver wiki/operacao/seguranca.md).
     expose: [ "3000" ]
+  # Ferramentas de operação (migração, seed, admin:create). Não sobe com `docker compose up`:
+  #   docker compose run --rm tools npx prisma migrate deploy
+  #   docker compose run --rm tools npm run db:seed
+  #   docker compose run --rm tools npm run admin:create
+  tools:
+    profiles: [ "tools" ]
+    build:
+      context: .
+      target: tools
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://benjamim:${POSTGRES_PASSWORD:-benjamim}@db:5432/benjamim
+    depends_on:
+      db: { condition: service_healthy }
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped

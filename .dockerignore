@@ -2,8 +2,13 @@ node_modules
 .next
 out
 .git
+.github
+.claude
 .env*
 !.env.example
+*.tsbuildinfo
+test-results
+playwright-report
 revisao
 referencias
 registro

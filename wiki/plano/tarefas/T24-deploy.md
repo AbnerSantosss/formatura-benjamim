@@ -33,3 +33,10 @@ tags: [tarefa, fase-7, deploy, producao, humano]
 - Não colar credenciais em chat, wiki, commits ou relatório.
 - Não rodar `prisma migrate dev` em produção (só `migrate deploy`).
 - Não deixar `DEMO_MODE=true` ou `PAYMENT_GATEWAY=demo` no servidor.
+
+## Desvios registrados
+- 2026-10-09: só a preparação foi feita (passo 2 e o ensaio local do passo 4). O passo 1 é do dono e não aconteceu; os passos 3 a 11 seguem pendentes.
+- Além de `wiki/log.md` e `wiki/operacao/deploy.md`, mudaram `Dockerfile`, `docker-compose.yml`, `.dockerignore`, três `page.tsx` (uma linha de cache em cada), `checklist-producao.md` e `README.md`: a imagem não construía nem rodava os comandos do passo 4 → [[decisoes/014-build-sem-banco-e-imagem-de-ferramentas]].
+- Os comandos do passo 4 mudaram: `docker compose --profile tools build`, `docker compose up -d db`, `docker compose run --rm tools npx prisma migrate deploy`, `... npm run db:seed`, `... npm run admin:create`, `docker compose up -d`. Vale o que está em [[operacao/deploy]], Caminho A.
+- `MP_WEBHOOK_SECRET` é obrigatória para o app subir: o webhook do passo 5 precisa ser cadastrado antes do passo 4, ou o app sobe com valor provisório e é reiniciado depois.
+- O cron de expiração lê `CRON_SECRET` do `.env` do servidor (a variável não existe no ambiente do cron).

@@ -84,7 +84,7 @@ A lista completa, com obrigatoriedade por ambiente, está em [wiki/operacao/vari
 
 Caminho recomendado: VPS com Docker Compose (`Dockerfile`, `docker-compose.yml`, `Caddyfile`). O Caddy obtém o HTTPS para o domínio em `SITE_DOMAIN`. O procedimento completo está em [wiki/operacao/deploy.md](wiki/operacao/deploy.md), e a lista de conferência antes de cobrar de verdade está em [wiki/operacao/checklist-producao.md](wiki/operacao/checklist-producao.md).
 
-**Atenção antes do deploy (T24):** a imagem de execução do `Dockerfile` não copia a pasta `scripts/` nem instala o `tsx`. Os comandos de seed e de `admin:create` dentro do contêiner, descritos em `deploy.md`, não funcionam como estão. Isso precisa ser corrigido e testado na T24.
+**Estado do deploy (T24, 2026-10-09):** a preparação está feita e foi ensaiada em Docker local: a imagem é construída do zero sem banco e sem segredos, e a migração, o seed e o `admin:create` rodam por uma imagem de ferramentas (`docker compose run --rm tools ...`), porque a imagem do app não tem `tsx` nem a CLI do Prisma. O app roda como usuário sem privilégios. **O deploy na VPS ainda não foi feito**: HTTPS com o domínio real, Mercado Pago e SMTP de verdade continuam sem verificação.
 
 Segurança (cabeçalhos, CSP, IP do cliente, limites de tentativas e resultado da revisão): [wiki/operacao/seguranca.md](wiki/operacao/seguranca.md).
 

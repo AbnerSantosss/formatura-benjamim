@@ -3,7 +3,9 @@ import { prisma } from '@/server/db';
 import { getCampaignSummary } from '@/server/orders.service';
 import './reference.css';
 
-export const revalidate = 30;
+// Renderizada a cada visita: o `next build` (dentro do `docker build`) roda sem banco, então a página
+// não pode ser pré-renderizada lendo a campanha. Ver wiki/operacao/deploy.md.
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const [summary, instagram] = await Promise.all([

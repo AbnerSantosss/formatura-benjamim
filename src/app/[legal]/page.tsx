@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { Header, Footer } from '@/components/shared';
 import { prisma } from '@/server/db';
 
-export const revalidate = 30;
+// Renderizada a cada visita: o `next build` (dentro do `docker build`) roda sem banco, então a página
+// não pode ser pré-renderizada lendo os links do rodapé. Ver wiki/operacao/deploy.md.
+export const dynamic = 'force-dynamic';
 export const dynamicParams = false;
 export function generateStaticParams() {
   return [{ legal: 'termos' }, { legal: 'privacidade' }, { legal: 'regulamento' }];

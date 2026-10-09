@@ -5,8 +5,10 @@ import CheckoutEntry from '@/components/checkout-entry';
 import { prisma } from '@/server/db';
 import { getCampaignSummary } from '@/server/orders.service';
 
-// Total arrecadado e links do rodapé vêm do banco; a página é refeita no máximo a cada 30 s.
-export const revalidate = 30;
+// Total arrecadado e links do rodapé vêm do banco.
+// Renderizada a cada visita: o `next build` (dentro do `docker build`) roda sem banco, então a página
+// não pode ser pré-renderizada lendo a campanha. Ver wiki/operacao/deploy.md.
+export const dynamic = 'force-dynamic';
 
 export default async function Contribuir() {
   const [summary, links] = await Promise.all([
