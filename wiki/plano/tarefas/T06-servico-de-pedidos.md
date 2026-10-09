@@ -53,3 +53,6 @@ grep -rn "console.log" src/server/orders.service.ts ; echo "(esperado: nada)"
 - Não aceitar `status` vindo do cliente em nenhuma função.
 - Não guardar CPF em claro em lugar nenhum (nem em `AuditLog`).
 - Não usar `Date.now()` dentro das funções; `now` sempre chega por parâmetro.
+
+## Desvios registrados
+- 2026-10-09: portas do host trocadas por conflito com outros containers da máquina. Onde este arquivo diz `5432` (host) use `5442`; onde diz `5433` use `5443`. Ver [[decisoes/008-portas-do-postgres-local]].

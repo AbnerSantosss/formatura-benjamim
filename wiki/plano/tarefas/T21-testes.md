@@ -32,3 +32,6 @@ Tudo verde localmente. Colar no relatório a contagem de testes por suíte.
 ## Não fazer
 - Não marcar testes como `skip` para passar.
 - Não usar credenciais reais em testes ou CI (nem as do `.env`).
+
+## Desvios registrados
+- 2026-10-09: portas do host trocadas por conflito com outros containers da máquina. Onde este arquivo diz `5432` (host) use `5442`; onde diz `5433` use `5443`. Ver [[decisoes/008-portas-do-postgres-local]].

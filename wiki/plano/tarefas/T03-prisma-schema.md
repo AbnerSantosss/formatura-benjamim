@@ -63,3 +63,6 @@ npm run typecheck && npm run lint && npm test
 - Não alterar o schema da wiki sem registrar o motivo em uma seção "## Desvios registrados" ao fim deste arquivo.
 - Não usar `prisma db push` (precisa de migração versionada).
 - Não gravar `DATABASE_URL` real no `.env.example`.
+
+## Desvios registrados
+- 2026-10-09: portas do host trocadas por conflito com outros containers da máquina. Onde este arquivo diz `5432` (host) use `5442`; onde diz `5433` use `5443`. Ver [[decisoes/008-portas-do-postgres-local]].

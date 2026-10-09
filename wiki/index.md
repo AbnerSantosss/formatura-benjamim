@@ -32,6 +32,7 @@ Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[de
 - [[decisoes/005-autenticacao-propria]] — sessão em banco + bcrypt, sem NextAuth.
 - [[decisoes/006-sorteio-por-csprng-auditavel]] — como o ganhador é escolhido.
 - [[decisoes/007-orquestracao-por-modelo]] — por que cada tarefa tem um modelo de IA definido.
+- [[decisoes/008-portas-do-postgres-local]] — Postgres local em 5442 (dev) e 5443 (teste), porque 5432/5433 já estão em uso na máquina.
 
 ## Integrações
 - [[integracoes/mercado-pago]] — Orders API Pix, webhook `x-signature`, estorno, sandbox.

@@ -129,3 +129,6 @@ test -f Dockerfile && test -f Caddyfile && test -f .dockerignore && echo arquivo
 ## Não fazer
 - Não colocar senhas reais no compose; usar `${POSTGRES_PASSWORD:-benjamim}` e o `.env`.
 - Não expor o Postgres em `0.0.0.0`.
+
+## Desvios registrados
+- 2026-10-09: portas do host trocadas por conflito com outros containers da máquina. Onde este arquivo diz `5432` (host) use `5442`; onde diz `5433` use `5443`. Ver [[decisoes/008-portas-do-postgres-local]].

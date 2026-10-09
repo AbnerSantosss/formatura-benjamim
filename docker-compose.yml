@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: benjamim
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-benjamim}
+      POSTGRES_DB: benjamim
+    volumes: [ "pgdata:/var/lib/postgresql/data" ]
+    ports: [ "127.0.0.1:5442:5432" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U benjamim" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://benjamim:${POSTGRES_PASSWORD:-benjamim}@db:5432/benjamim
+    depends_on:
+      db: { condition: service_healthy }
+    expose: [ "3000" ]
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: [ "80:80", "443:443" ]
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [ app ]
+  mailpit:
+    image: axllent/mailpit
+    profiles: [ "dev" ]
+    ports: [ "127.0.0.1:8025:8025", "127.0.0.1:1025:1025" ]
+volumes:
+  pgdata: {}
+  caddy_data: {}
+  caddy_config: {}
