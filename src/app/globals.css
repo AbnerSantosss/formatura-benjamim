@@ -3194,12 +3194,8 @@ label.admin-check {
 }
 
 /* Modo demonstração no painel: interruptor animado. */
-.demo-mode-panel {
-  border-left: 5px solid #1c9b5e;
-  transition: border-color 0.25s ease;
-}
 .demo-mode-panel.is-on {
-  border-left-color: #ffc928;
+  background: #fffaf0;
 }
 .demo-mode-head {
   display: flex;
@@ -3240,7 +3236,7 @@ label.admin-check {
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 2px 5px rgba(6, 46, 102, 0.3);
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .admin-switch[aria-checked='true'] {
   background: #ffc928;
