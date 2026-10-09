@@ -739,7 +739,33 @@
     background: #d7f2ff;
   }
   .ref-site {
-    box-shadow: 0 0 50px #508baa1a;
+    --ref-col: min(100%, 1440px);
+    --ref-gutter: calc((100% - var(--ref-col)) / 2);
+    max-width: none;
+  }
+  .ref-header {
+    padding-inline: calc(var(--ref-gutter) + var(--ref-col) * 0.06);
+  }
+  .ref-hero {
+    min-height: min(39.0625vw, 720px);
+  }
+  .ref-hero-copy {
+    padding-left: calc(var(--ref-gutter) + var(--ref-col) * 0.06);
+    width: calc(var(--ref-gutter) + var(--ref-col) * 0.52);
+  }
+  .ref-flying-cap {
+    left: calc(var(--ref-gutter) + var(--ref-col) * 0.39);
+  }
+  .ref-content {
+    padding-inline: calc(var(--ref-gutter) + var(--ref-col) * 0.033);
+  }
+  .ref-footer {
+    padding-inline: calc(var(--ref-gutter) + var(--ref-col) * 0.04);
+  }
+}
+@media (min-width: 2200px) {
+  .ref-hero-background {
+    object-position: center 30%;
   }
 }
 @media (max-width: 1100px) {

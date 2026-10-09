@@ -96,7 +96,7 @@ export default function ReferenceLanding({ summary }: LandingProps) {
             alt="Composição de formatura baseada na fotografia do Benjamim, com cenário escolar e livros"
             fill
             priority
-            sizes="(max-width:760px) 760px, 1280px"
+            sizes="(max-width:760px) 760px, (max-width:1280px) 1280px, 100vw"
           />
           <div className="ref-hero-copy">
             <span className="ref-badge">
