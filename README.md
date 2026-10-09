@@ -1,90 +1,114 @@
-# Formatura do Benjamim — protótipo frontend
+# Formatura do Benjamim — campanha de arrecadação
 
-Landing, escolha de números, colaboração avulsa, Pix simulado, agradecimento e backoffice. Next.js + React + TypeScript e CSS simples. Exportação estática para `out/`.
+Site da campanha para a formatura do ABC do Benjamim. A campanha opera com **números e sorteio** (decisão em [wiki/decisoes/001-rifa-com-numeros-e-sorteio.md](wiki/decisoes/001-rifa-com-numeros-e-sorteio.md)). O pagamento é por Pix; o painel administrativo fica em `/admin`.
 
-## Executar
+**Estado (2026-10-09):** tarefas T00 a T23 concluídas. A T24 (deploy em VPS) depende do dono e ainda não foi feita. O Mercado Pago tem adapter escrito pela documentação oficial, mas **não foi testado com credenciais reais**. FastPay e IronPay são esqueletos, sem implementação.
+
+A documentação completa está em [wiki/index.md](wiki/index.md). Para o público não técnico, veja [README_PARA_ABNER.md](README_PARA_ABNER.md).
+
+## Stack
+
+- Next.js 16.4 (App Router, servidor Node com `output: 'standalone'`), React 19.3, TypeScript 6 em modo estrito.
+- CSS puro (sem Tailwind), Lucide para ícones.
+- PostgreSQL 16 com Prisma 6. Validação com Zod 4.
+- Senhas com bcrypt; sessão em banco com cookie HttpOnly.
+- E-mail por SMTP com Nodemailer.
+- Testes: Vitest (unitários e integração) e Playwright (E2E).
+- Produção: Docker Compose com Caddy para HTTPS.
+
+Detalhes em [wiki/arquitetura/stack.md](wiki/arquitetura/stack.md).
+
+## Pré-requisitos
+
+- Node.js 22 (a mesma versão do `Dockerfile` e do CI).
+- Docker, para o Postgres e o Mailpit de desenvolvimento.
+- Git.
+
+## Rodar em desenvolvimento
 
 ```sh
+cp .env.example .env
+```
+
+No Windows, use `copy .env.example .env`. Depois abra o `.env` e preencha `AUTH_SECRET` e `CPF_ENCRYPTION_KEY` (gere cada um com `openssl rand -hex 32`). O `DATABASE_URL` já aponta para o Postgres local da porta 5442. Não versione o `.env`.
+
+```sh
+docker compose --profile dev up -d db mailpit
 npm install
+npm run db:migrate
+npm run db:seed
+npm run admin:create -- --email voce@exemplo.com --name "Seu nome"
 npm run dev
 ```
 
-Abra http://127.0.0.1:3180. Login demonstrativo do painel: `admin` / `benjamim123` (valores públicos do protótipo).
+- `npm install` roda `prisma generate` sozinho. Se o cliente do Prisma não for gerado, rode `npx prisma generate`.
+- `admin:create` pede a senha no terminal, sem mostrar o que é digitado. A senha precisa ter 10 caracteres ou mais, com letras e números. O primeiro acesso exige trocar a senha.
+- Endereços: site em http://127.0.0.1:3180, painel em http://127.0.0.1:3180/admin, e-mails de desenvolvimento em http://localhost:8025 (Mailpit, se `SMTP_HOST=127.0.0.1` e `SMTP_PORT=1025`).
+- Sem gateway real, use `PAYMENT_GATEWAY=demo` e `DEMO_MODE=true` (já são os valores do `.env.example`). A tela de Pix mostra o botão "Simular aprovação (demo)". Esse modo é recusado quando `NODE_ENV=production`.
 
-```sh
-npm run test
-npm run lint
-npm run typecheck
-npm run build
-```
+Passo a passo completo, com o que é esperado em cada etapa: [wiki/operacao/como-executar.md](wiki/operacao/como-executar.md).
 
-Use `npm run dev` para desenvolver; a exportação estática não usa `next start`.
+## Scripts
 
-## Fluxo atual
+| Script | O que faz |
+|---|---|
+| `npm run dev` | servidor de desenvolvimento em 127.0.0.1:3180 |
+| `npm run build` | build de produção |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint (0 erros; 2 avisos conhecidos em `src/lib/admin-client.ts`) |
+| `npm run format` / `npm run format:check` | Prettier (escrever / só verificar) |
+| `npm test` | testes unitários (Vitest, sem banco) |
+| `npm run test:watch` | Vitest em modo contínuo |
+| `npm run test:integration` | testes com o Postgres de teste (porta 5443) |
+| `npm run test:e2e` | Playwright, Chromium, um fluxo completo |
+| `npm run test:all` | unitários, integração e E2E, em sequência |
+| `npm run db:migrate` | aplica as migrações (`prisma migrate deploy`) |
+| `npm run db:seed` | cria a campanha e os dois produtos (idempotente) |
+| `npm run db:studio` | interface visual do banco (Prisma Studio) |
+| `npm run admin:create` | cria ou atualiza um administrador |
+| `npm run email:test -- --to voce@exemplo.com` | envia um e-mail de teste |
 
-- Landing com cestas Boticário masculina e feminina, pacotes e link para colaboração avulsa.
-- R$ 5 = 10 números, R$ 10 = 20, R$ 25 = 50, R$ 50 = 100. Outros pacotes aceitam múltiplos de R$ 5, até o total de números.
-- Lista de 5.000 números, de 0001 a 5000, organizada em 50 blocos de 100. Cada bloco tem uma tabela 10×10. O usuário pode escolher em blocos diferentes, limpar ou completar com números disponíveis.
-- No mobile, somente a tabela permite deslocamento horizontal para manter alvos de toque de 44×44 px. A página não deve ter overflow horizontal.
-- Colaboração avulsa: valor livre a partir de R$ 5, inclusive centavos, sem números.
-- Pix de demonstração: mostra produto, modalidade, valor e números. O código não funciona em aplicativo bancário e não movimenta dinheiro.
-- Reserva local dos números por 10 minutos ao criar o pedido; aprovação confirma, expiração e estorno liberam. Renovação preserva o produto e os números e verifica novamente a disponibilidade.
-- Agradecimento separado, acessível após aprovação simulada, com família em cartoon, frase centralizada e container translúcido. Em telas curtas, o card possui rolagem interna.
-- Backoffice: produtos criados automaticamente, lista de pedidos, filtro por modalidade/status, busca por produto/código/número/valor, aprovação, estorno, CSV, meta e limpeza de testes.
-- Dois produtos de catálogo, sem duplicação por pedido: `cestas-boticario` (participação no sorteio) e `colaboracao-avulsa` (sem números). Cada pedido vincula `productId`, `mode`, `numbers`, valor, datas e status.
-- Registros antigos são preservados e migrados para colaboração avulsa, sem inventar números para eles.
+## Testes
 
-## Limites desta entrega
+- `npm test` não precisa de banco.
+- `npm run test:integration` precisa do banco de teste: `docker compose -f docker-compose.test.yml up -d`. O teste carrega `.env.test` e recusa qualquer banco que não seja o de teste.
+- `npm run test:e2e` usa o banco definido em `DATABASE_URL` (o de desenvolvimento) e cria pedidos fictícios nele. As comparações de imagem são da plataforma Windows; no CI elas ficam desligadas por `E2E_IGNORE_SNAPSHOTS=1`.
 
-Escopo autorizado: frontend de demonstração. A solicitação mais recente substitui nesta prévia a apresentação anterior de vaquinha. Não há backend, banco, autenticação real, cobrança, envio ao Mercado Pago ou apuração real de sorteio.
+Contagens na última rodada (T22): 137 unitários, 129 de integração, 11 E2E.
 
-Os campos pessoais usam dados fictícios e não são persistidos ou enviados. localStorage guarda apenas os pedidos simulados, produtos, números, valores e datas. Limite de 1.000 pedidos locais. sessionStorage guarda a sessão demonstrativa. Esses dados podem ser alterados pelo usuário e não são compartilhados entre dispositivos. A disponibilidade local não garante reserva concorrente entre pessoas, abas ou dispositivos; a produção exige banco e transações atômicas.
+## Variáveis de ambiente
 
-A meta pública permanece ilustrada com arrecadação inicial de R$ 0; resultados reais de gateway não existem. O painel calcula apenas os testes deste navegador.
+A lista completa, com obrigatoriedade por ambiente, está em [wiki/operacao/variaveis-de-ambiente.md](wiki/operacao/variaveis-de-ambiente.md). O `.env.example` traz os valores de desenvolvimento e deixa os segredos vazios. Segredos ficam apenas no `.env` local ou no servidor; nunca no código, na wiki ou nos commits.
 
-## Produção e Mercado Pago — pendente
+## Produção (resumo)
 
-1. Validar o enquadramento jurídico da operação e a aceitação expressa pelo provedor antes de cobrar por números. A ausência de tráfego pago e o caráter familiar não são tratados aqui como autorização. A orientação do Ministério da Fazenda sobre rifas pode ser consultada em https://www.gov.br/fazenda/pt-br/composicao/orgaos/secretaria-de-premios-e-apostas/apostas-de-quota-fixa/tire-suas-duvidas/rifas/as-rifas-sao-permitidas-no.
-2. Cadastro como “produto” organiza o catálogo, mas não altera a natureza da participação no sorteio. Nenhum título/categoria de venda de bens foi criado para ocultar essa natureza ao gateway. A colaboração avulsa tem descrição separada.
-3. Implementar backend, banco e autenticação real. Produtos devem ser criados idempotentemente por código; pedidos e itens devem preservar o produto/modalidade, valor e números. Não usar localStorage para reservas reais.
-4. Implementar reserva exclusiva por número no banco, expiração e liberação transacionais, confirmação e estorno idempotentes. Verificar preço, quantidade, identidade e disponibilidade no servidor.
-5. Consultar a documentação oficial vigente da API aprovada pelo provedor. Esta entrega não contém nem valida um payload de Mercado Pago e não cria produtos no serviço externo.
-6. Credenciais somente no servidor. QR/Copia e Cola reais somente após criação validada; confirmar via webhook HTTPS autenticado e consulta server-to-server, validando status, referência e valor.
-7. Revisar condições das cestas, data e método de apuração, elegibilidade, entrega, contatos, privacidade, reembolso e destino de excedentes. Nenhum mecanismo de apuração está implementado.
-8. Testar em sandbox e remover os controles de simulação antes de qualquer cobrança. Não existe um botão frontend para ativar cobrança real neste protótipo.
+Caminho recomendado: VPS com Docker Compose (`Dockerfile`, `docker-compose.yml`, `Caddyfile`). O Caddy obtém o HTTPS para o domínio em `SITE_DOMAIN`. O procedimento completo está em [wiki/operacao/deploy.md](wiki/operacao/deploy.md), e a lista de conferência antes de cobrar de verdade está em [wiki/operacao/checklist-producao.md](wiki/operacao/checklist-producao.md).
 
-## Arquivos principais
+**Atenção antes do deploy (T24):** a imagem de execução do `Dockerfile` não copia a pasta `scripts/` nem instala o `tsx`. Os comandos de seed e de `admin:create` dentro do contêiner, descritos em `deploy.md`, não funcionam como estão. Isso precisa ser corrigido e testado na T24.
 
-- `src/components/reference-landing.tsx` / `src/app/reference.css`: landing e kits.
-- `src/components/checkout.tsx` / `src/components/number-picker.tsx`: modalidades e grade.
-- `src/lib/demo-model.ts`: catálogo, preço, validação, reserva, transições e totais.
-- `src/lib/demo-store.ts`: armazenamento local e sessão demonstrativa.
-- `src/components/demo-payment.tsx` / `src/components/order-details.tsx`: Pix e item do pedido.
-- `src/components/demo-thanks.tsx` / `src/app/obrigado/thanks.css`: agradecimento.
-- `src/components/backoffice.tsx` / `src/components/product-catalog.tsx`: pedidos e produtos.
-- `src/app/order-flow.css`: estilos das modalidades, números e catálogo.
-- `tests/demo.test.mjs`: testes do modelo.
+Segurança (cabeçalhos, CSP, IP do cliente, limites de tentativas e resultado da revisão): [wiki/operacao/seguranca.md](wiki/operacao/seguranca.md).
 
-## Imagens
+## Estrutura de pastas
 
-Fotos originais preservadas: `public/images/benjamim.png` e `public/images/familia-benjamim.png`. Assets derivados via image_gen integrado:
+- `src/app/`: rotas (landing, `/contribuir`, `/pagamento/[id]`, `/obrigado/[id]`, `/admin/**`, `/api/**`, `/privacidade`, `/termos`, `/regulamento`).
+- `src/components/`: telas públicas e painel administrativo (`admin/`).
+- `src/domain/`: regras puras (valores em centavos, pedidos, sorteio, validação).
+- `src/server/`: serviços, gateways de pagamento, autenticação, e-mail, banco e ambiente.
+- `prisma/`: schema, migrações e seed.
+- `scripts/`: `admin-create.ts` e `email-test.ts`.
+- `tests/`: unitários, integração, segurança e E2E.
+- `wiki/`: documentação, decisões e plano de execução.
 
-- `familia-benjamim-cartoon.png`: família ilustrada no agradecimento. Prompt: `revisao/familia-cartoon-prompt.txt`.
-- `pagamento-cartoon-chapeu-v2.png` e `pagamento-cartoon-chapeu-mobile.png`: fundo do pagamento baseado na foto do chapéu azul e camiseta laranja. Prompts na pasta `revisao/`.
-- `hero-cenario.png`: composição do hero baseada na fotografia original.
+Mapa arquivo por arquivo: [wiki/arquitetura/estrutura-de-pastas.md](wiki/arquitetura/estrutura-de-pastas.md).
 
-Referências Desktop/Mobile mantidas. A identidade familiar e os textos atuais substituem textos desatualizados dos mockups; não é uma reprodução pixel a pixel.
+## Pendências para produção com Mercado Pago
 
-## Validação
+1. Confirmar com o dono a regulamentação da operação de números e sorteio. O tema está registrado na decisão 001 e não é resolvido pelo código.
+2. Criar a aplicação no painel de desenvolvedor do Mercado Pago e obter as credenciais de produção; configurar o webhook HTTPS e a assinatura secreta. Detalhes em [wiki/integracoes/mercado-pago.md](wiki/integracoes/mercado-pago.md), seção "Pendências para produção".
+3. Testar um pagamento real de R$ 5 e conferir aprovação, e-mail e número confirmado.
+4. Decidir o tratamento de Pix pago depois do prazo de expiração (decisão do dono em [wiki/decisoes/010-contratos-reais-da-janela-b.md](wiki/decisoes/010-contratos-reais-da-janela-b.md)).
+5. Trocar os textos de demonstração que ainda aparecem nas telas públicas (lista na entrada "Fase 3 concluída (T09–T13)" de [wiki/log.md](wiki/log.md)).
 
-12 testes do modelo passaram, incluindo pacotes, seleção exata, duplicidade, reserva, expiração, estorno, colaboração avulsa, migração e catálogo. TypeScript e lint passaram. Verificações de navegador: escolha entre blocos, último número 5000, reserva, aprovação, expiração, renovação, estorno, valor avulso com centavos, produtos automáticos e filtro por número/modalidade. Capturas em `revisao/`.
+## Privacidade
 
-A revisão está disponível localmente. A publicação Sites anterior está indisponível no conector (projeto não encontrado, 404); o endereço hospedado não contém estas revisões.
-
-## Seleção aleatória
-
-O botão azul Selecionar aleatoriamente monta um novo conjunto com a quantidade exata do pacote, sem repetição e excluindo números ocupados. Uma nova utilização substitui a seleção anterior. Completar com disponíveis continua preservando a seleção manual. Limpar escolha usa ícone, borda e fundo rosa suave. Botões verificados em desktop e mobile; testes cobrem quantidade, limites e disponibilidade.
-
-## Revisão visual do seletor
-
-O seletor inteiro tem um painel azul claro para contrastar com as células brancas. Os números escolhidos aparecem em pílulas douradas dentro de um container branco. A frase repetida que enumerava a equivalência dos pacotes foi removida do modo de números. O CTA final é “Quero garantir meus números!” e, na colaboração avulsa, “Quero ajudar esse sonho!”, mantendo a indicação de simulação ao redor. A lógica de reserva e pagamento de teste não foi alterada.
+O CPF é cifrado em repouso (AES-256-GCM) e não aparece nas páginas públicas nem nos logs. Os textos de privacidade e termos ainda precisam de revisão antes da cobrança real.

@@ -29,3 +29,9 @@ npm run format:check && npm run lint
 ## Não fazer
 - Não colocar credenciais, chaves ou e-mails pessoais em nenhum arquivo.
 - Não apagar entradas antigas do `wiki/log.md`.
+
+## Desvios registrados
+- 2026-10-09: o grep `hotmail|gmail|Mudar@` não volta vazio. Sobram `wiki/integracoes/email.md` e `wiki/operacao/variaveis-de-ambiente.md` (nome do provedor Gmail e o exemplo `conta@gmail.com`, que não é endereço de ninguém), além deste arquivo e da T24, que citam o próprio comando. Nenhum e-mail pessoal nem senha; nada foi apagado. Os arquivos escritos pela T23 não têm ocorrência.
+- O laço de links acusa dois falsos positivos em arquivos de tarefa (texto de exemplo na T15 e `[[link]]` nesta tarefa).
+- Os comandos da documentação foram conferidos contra `package.json`, `docker-compose.yml` e o código (rótulos de botões inclusive), não executados do zero numa máquina limpa.
+- A T23 achou que a imagem de execução do `Dockerfile` não leva `scripts/` nem `tsx`: seed e `admin:create` dentro do contêiner não funcionam como `deploy.md` descreve. Fica para a [[plano/tarefas/T24-deploy]].

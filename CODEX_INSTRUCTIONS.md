@@ -1,3 +1,5 @@
+> **Nota (2026-10-09): este briefing está superado.** O projeto foi concluído até a T23 do plano de produção e opera com **números e sorteio**, conforme [wiki/decisoes/001-rifa-com-numeros-e-sorteio.md](wiki/decisoes/001-rifa-com-numeros-e-sorteio.md). As regras de "vaquinha sem sorteio" abaixo não valem mais. Para o estado atual, leia [README.md](README.md) e [wiki/index.md](wiki/index.md).
+
 # Missão para Codex — Site de arrecadação da formatura do ABC do Benjamim
 
 Você é um engenheiro full-stack sênior e designer UX/UI. CONSTRUA E TESTE este projeto, não entregue somente um plano ou pseudocódigo. Use como referência os arquivos visuais existentes em `referencias/`, sobretudo `layout-desktop.png`, `layout-mobile.png`, `layout-checkout-desktop.png` e a fotografia original `foto-original-benjamim.png`.

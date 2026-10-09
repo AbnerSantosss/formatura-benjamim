@@ -6,7 +6,7 @@ tags: [wiki, indice]
 
 # Wiki — Formatura do Benjamim
 
-Site de arrecadação para a formatura do ABC do Benjamim. Hoje é um protótipo frontend (Next.js 16, dados em localStorage). O objetivo desta fase é colocar em produção: banco, autenticação, compra de números com produto, Mercado Pago (FastPay e IronPay pré-configurados) e sorteio no backoffice.
+Site de arrecadação para a formatura do ABC do Benjamim. O plano de produção (T00 a T23) está concluído: Next.js 16 com PostgreSQL e Prisma, autenticação própria, compra de números com produto, Pix pelo Mercado Pago (adapter ainda não testado com credenciais reais; FastPay e IronPay são stubs) e sorteio no painel. Falta a T24 (deploy na VPS), que depende do dono.
 
 Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[decisoes/001-rifa-com-numeros-e-sorteio]].
 
