@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Header, Footer } from '@/components/shared';
 
+export const dynamicParams = false;
 export function generateStaticParams() { return [{ legal: 'privacidade' }, { legal: 'termos' }]; }
 export default async function Legal({ params }: { params: Promise<{ legal: string }> }) {
   const { legal } = await params;
