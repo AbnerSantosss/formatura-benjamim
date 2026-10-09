@@ -35,3 +35,10 @@ Tudo verde localmente. Colar no relatório a contagem de testes por suíte.
 
 ## Desvios registrados
 - 2026-10-09: portas do host trocadas por conflito com outros containers da máquina. Onde este arquivo diz `5432` (host) use `5442`; onde diz `5433` use `5443`. Ver [[decisoes/008-portas-do-postgres-local]].
+- 2026-10-09: snapshots visuais gerados do estado atual, não do commit da T00 ([[decisoes/012-snapshots-visuais-a-partir-do-estado-validado]]). Ficam em `tests/e2e/__snapshots__/` (Windows/Chromium); no CI a comparação de imagens é desligada por `E2E_IGNORE_SNAPSHOTS=1` e o fluxo roda inteiro.
+- Passo 2: nada instalado, o Playwright já estava no projeto. O `webServer.env` leva também `SMTP_HOST=127.0.0.1`/`SMTP_PORT=1025`, para um servidor iniciado pelo Playwright nunca usar o SMTP do `.env`.
+- Passo 3: o admin do E2E é criado num `globalSetup` com `createAdmin` (senha aleatória só em memória, e-mail `e2e-admin+<aleatório>@exemplo.invalid` por causa do limite de 5 logins por e-mail) e removido no `globalTeardown`; um segundo admin de papel ADMIN cobre essa visão. O spec manda `X-Forwarded-For` fictício por execução para não esbarrar nos limitadores.
+- Sem relatório HTML, trace, vídeo nem captura do Playwright: gravariam em disco o que é digitado nos campos.
+- Passo 6: no CI o Postgres fica em 5443 (a trava dos testes de integração só aceita `localhost:5443/test`), há `npx prisma generate`, `npx next typegen` e `npm run db:seed` antes do build. O workflow teve só a sintaxe validada; nunca rodou num runner.
+- Passo 1: nenhum caso listado nas tarefas faltava. Acrescentados 31 testes unitários (`tests/lib/admin-client.test.ts`, `tests/server/rate-limit.test.ts`, `tests/server/crypto.test.ts`, `tests/proxy.test.ts`).
+- Sem teste pela interface: salvar edição de produto, estorno, exportar CSV, configurações e card do sorteio (têm teste de rota/serviço). Cada execução do E2E deixa um pedido aprovado de R$ 5 "Contribuinte E2E" no banco de dev.

@@ -6,6 +6,7 @@ out/
 !.env.example
 !.env.test
 test-results/
+playwright-report/
 
 # Registro automático de sessões (contém pedidos na íntegra)
 registro/
