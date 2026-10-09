@@ -70,4 +70,4 @@ Nenhuma transação financeira foi executada. O código de demonstração não �
 
 ## Fundo cartoon do pagamento
 
-A tela `/pagamento` usa `public/images/pagamento-cartoon-v1.png`, gerado com a ferramenta integrada image_gen a partir do cenário e da fotografia original. A ilustração traz Benjamim, escola, livros, capelo e blocos ABC; centro claro para a leitura do cartão e enquadramento próprio no mobile. O prompt completo está em `revisao/pagamento-cartoon-prompt.txt`.
+A tela `/pagamento` usa `public/images/pagamento-cartoon-chapeu-v2.png`, gerado com a ferramenta integrada image_gen a partir da foto indicada pelo usuário, com chapéu azul decorado e camiseta laranja. A ilustração traz Benjamim, escola, livros, capelo e blocos ABC; centro claro para a leitura do cartão e enquadramento próprio no mobile. O prompt completo está em `revisao/pagamento-cartoon-chapeu-prompt.txt`.

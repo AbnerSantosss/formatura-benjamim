@@ -4,16 +4,16 @@
 
 /* Graduation illustration keeps the center clear for the payment card. */
 .demo-payment-main {
-  background: #eaf7ff url('/images/pagamento-cartoon-v1.png') center top / cover no-repeat;
+  background: #eaf7ff url('/images/pagamento-cartoon-chapeu-v2.png') center top / cover no-repeat;
   padding: 56px 20px 70px;
 }
 .demo-payment-main .demo-payment-card {
   border: 1px solid #ffffff;
   box-shadow: 0 18px 60px #062e6624;
 }
-@media (max-width: 760px) {
+@media (max-width: 1100px) {
   .demo-payment-main {
-    background-size: auto 285px;
-    padding: 238px 14px 36px;
+    background-size: 100% auto;
+    padding: clamp(210px, 45vw, 460px) 14px 36px;
   }
 }
