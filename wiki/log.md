@@ -45,3 +45,9 @@ Formato: `## [AAAA-MM-DD] <tipo> | <resumo>` — tipos: setup, ingest, query, li
 - O que foi feito: bloco "Início rápido" em [[plano/orquestrador]] com o ambiente já verificado (Node 24, Docker ativo, Playwright já instalado, testes em `node:test`); gatilho em `CLAUDE.md`/`GEMINI.md` para a sessão assumir o papel de orquestrador sem confirmação.
 - Entregue: próxima sessão começa pela T00 direto.
 - Armadilhas: nenhuma tarefa do plano foi executada ainda; `wiki/plano/status.md` ainda não existe (T00 cria).
+
+## [2026-10-09] update | Fase 0 concluída (T00–T04) e T05
+- Pedido: executar o plano de produção como orquestrador (subagentes só em `haiku`/`opus`).
+- O que foi feito: T00 pelo orquestrador (commit do protótipo, branch `producao`, Prettier, Vitest, baseline visual em `revisao/baseline/`, `wiki/plano/status.md`). Janela A em paralelo: T01 (`output: 'standalone'`, sem barra final), T02 (Dockerfile, Compose, Caddy), T03 (schema Prisma 6, migração com índice único parcial, seed), T04 (`src/server/env.ts` com Zod), T05 (`src/domain/*` e testes).
+- Entregue: `npm run typecheck`, `npm run lint`, `npm test` (40 testes) e `npm run build` verdes; `npx prisma migrate status` em dia; `docker compose ps` com `db` saudável em 127.0.0.1:5442. Um commit por tarefa.
+- Armadilhas: portas 5432/5433 já ocupadas por outros projetos da máquina → [[decisoes/008-portas-do-postgres-local]]. O plano se contradizia em meta (R$ 25.000 × R$ 2.500), `unitPriceCents` × `unitCents` e id da campanha → [[decisoes/009-ajustes-de-consistencia-do-schema]]. O npm da máquina bloqueia scripts de pós-instalação: rodar `npx prisma generate` à mão depois de `npm install`. O Chromium do Playwright estava em versão antiga; `npx playwright install chromium` resolveu. `npm install` em paralelo por vários subagentes corromperia o lockfile: o orquestrador instala os pacotes antes de abrir cada janela.
