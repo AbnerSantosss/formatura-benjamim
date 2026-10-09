@@ -41,3 +41,17 @@ Manual: configurar `drawAt` no passado → botão habilita → gerar → ver res
 - Não usar `Math.random`.
 - Não expor dados do ganhador além do primeiro nome e número fora do painel.
 - Não permitir dois sorteios válidos ao mesmo tempo.
+
+## Desvios registrados
+- O modelo `Draw` real não tem `forced`, `drawnById` nem `drawnAt` (os campos são `performedById` e `performedAt`). Sem migração nova: a marca de sorteio antecipado fica em `AuditLog.meta.forced` de `draw.performed`, e o painel lê de lá. O ADR 006 e [[fluxos/sorteio]] ainda citam os nomes antigos.
+- Ordem das checagens em `performDraw`: `DRAW_EXISTS` (409), `DRAW_NOT_YET` (409), `force` por quem não é OWNER (403). `forced` gravado é "ainda não era a data", então `force: true` depois da data não marca como antecipado. Sem `drawAt`, só OWNER com `force` sorteia.
+- Códigos além do texto: `NO_PARTICIPANTS` (409), `NO_ACTIVE_DRAW` (409) e `DrawError('INVALID_INDEX')` no domínio.
+- Respostas: `GET /api/admin/sorteio` → `{ state }`; `POST` → `{ state, emails: { winnerSent, adminsSent, adminsTotal } }`; `POST .../anular` → `{ state }`. O GET também passa por `assertSameOrigin`, como o passo 3 pede (os outros GET do painel só usam `requireAdmin`).
+- Se o e-mail do ganhador falhar, o sorteio vale e o card avisa para contatar por WhatsApp ou e-mail. Não há reenvio.
+- Motivo da anulação: 10 a 500 caracteres, gravado só em `Draw.notes` (fora do `AuditLog`, por ser texto livre). O ganhador não é avisado da anulação.
+- Papel ADMIN: sorteia depois da data, vê o resultado completo, não antecipa nem anula.
+- Passo 4: `getCampaignSummary` já devolvia o ganhador (primeiro nome e número) com `drawPublic`; só ganhou teste de integração.
+- `confirm-dialog.tsx` ganhou a prop opcional `confirmDisabled`.
+- O `grep "Math.random"` do "Não fazer" acha 2 usos antigos fora do sorteio: `src/domain/orders.ts:30` (escolha aleatória de números no checkout) e um identificador em `tests/integration/auth-flows.test.ts`. O sorteio usa só `node:crypto`.
+- Teste manual não cobriu: alterar `drawAt` pela tela de Configurações (foi direto no banco), `drawPublic` na landing pelo navegador e o HTML dos e-mails (só assunto e destinatário no Mailpit).
+- Sem tratamento: pedido vencedor estornado depois do sorteio continua como ganhador até alguém anular.

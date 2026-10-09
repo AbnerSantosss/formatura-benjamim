@@ -10,6 +10,7 @@ import type {
   AdminProduct,
   AdminSettings,
 } from '@/server/admin.service';
+import type { DrawEmails as ServerDrawEmails, DrawState as ServerDrawState } from '@/server/draw.service';
 import type { GatewayHealth } from '@/server/gateways/registry';
 import { ApiError, NETWORK_ERROR, type ApiErrorDetail } from './api-client';
 
@@ -28,6 +29,8 @@ export type Metrics = Wire<AdminMetrics>;
 export type Product = Wire<AdminProduct>;
 export type Settings = Wire<AdminSettings>;
 export type AdminUser = Wire<AdminListItem>;
+export type DrawState = Wire<ServerDrawState>;
+export type DrawResult = { state: DrawState; emails: ServerDrawEmails };
 export type Gateways = GatewayHealth;
 export type AdminRole = AdminUser['role'];
 export type OrderStatus = Order['status'];
@@ -211,6 +214,21 @@ export function resendInvite(adminId: string): Promise<InviteResult> {
 export async function setAdminActive(adminId: string, active: boolean): Promise<AdminUser> {
   const path = `/api/admin/usuarios/${id(adminId)}`;
   return (await request<{ admin: AdminUser }>(path, send('PATCH', { active }))).admin;
+}
+
+// --- Sorteio ---------------------------------------------------------------------------------
+
+export async function fetchDraw(signal?: AbortSignal): Promise<DrawState> {
+  return (await request<{ state: DrawState }>('/api/admin/sorteio', { signal })).state;
+}
+
+/** `force` (só proprietário) sorteia antes da data configurada. */
+export function performDraw(force: boolean): Promise<DrawResult> {
+  return request<DrawResult>('/api/admin/sorteio', send('POST', force ? { force: true } : {}));
+}
+
+export async function annulDraw(reason: string): Promise<DrawState> {
+  return (await request<{ state: DrawState }>('/api/admin/sorteio/anular', send('POST', { reason }))).state;
 }
 
 // --- Datas e dinheiro na tela ----------------------------------------------------------------

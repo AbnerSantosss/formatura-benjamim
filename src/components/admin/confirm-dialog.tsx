@@ -12,6 +12,8 @@ type Props = {
   /** Ação destrutiva: o botão de confirmar usa o estilo de perigo. */
   danger?: boolean;
   pending?: boolean;
+  /** Mantém o botão de confirmar desabilitado (ex.: campo obrigatório do conteúdo ainda vazio). */
+  confirmDisabled?: boolean;
   error?: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -32,6 +34,7 @@ export default function ConfirmDialog({
   cancelLabel = 'Cancelar',
   danger = false,
   pending = false,
+  confirmDisabled = false,
   error = '',
   onConfirm,
   onCancel,
@@ -118,7 +121,7 @@ export default function ConfirmDialog({
             type="button"
             className={danger ? 'danger-button' : 'secondary-button'}
             onClick={onConfirm}
-            disabled={pending}
+            disabled={pending || confirmDisabled}
           >
             {pending ? pendingLabel : confirmLabel}
           </button>
