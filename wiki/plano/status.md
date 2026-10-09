@@ -18,7 +18,7 @@ tags: [plano, status]
 | T05 | concluída | 2026-10-09 06:21 |
 | T06 | concluída | 2026-10-09 06:37 |
 | T07 | concluída | 2026-10-09 06:39 |
-| T08 | pendente | - |
+| T08 | concluída | 2026-10-09 07:01 |
 | T09 | pendente | - |
 | T10 | pendente | - |
 | T11 | pendente | - |

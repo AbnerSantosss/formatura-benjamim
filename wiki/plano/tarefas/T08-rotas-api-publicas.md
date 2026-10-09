@@ -47,3 +47,12 @@ npm run typecheck && npm run lint && npm test && npm run build
 - Não responder 500 para webhook depois de gravar o evento.
 - Não usar `params.id` sem `await` (Next 16).
 - Não criar rota que exponha CPF, e-mail ou telefone sem autenticação.
+
+## Desvios registrados
+- (2026-10-09) Arquivo a mais: `src/server/payment-sync.ts`, com `handleWebhook(gatewayId, req)` (as três rotas de webhook só o chamam) e `refreshPendingOrder(orderId, now)` (consulta de reserva da rota de status).
+- (2026-10-09) `WebhookEvent` não tem a coluna `error`: a falha vai em `WebhookEvent.result` como `error: <código>` e `processedAt` fica nulo.
+- (2026-10-09) O conflito de números sai como `{ code: 'NUMBERS_TAKEN', message, numbers }` (o serviço lança `OrderConflictError` com código `ORDER_CONFLICT`; a troca é feita em `fail`). Validação responde `VALIDATION_ERROR`.
+- (2026-10-09) Webhook: `not-configured` (sem segredo do gateway) responde 503; `unsupported-topic` e `missing-data-id`, que só aparecem depois de a assinatura conferir, respondem 200 `{ received: true, ignored: true }` sem gravar evento. Status `pending` do provedor não chama `applyProviderStatus`. O pedido precisa ter sido criado no mesmo gateway do webhook.
+- (2026-10-09) `POST /api/demo/aprovar` só aprova pedido do gateway `DEMO` e responde 409 `ORDER_NOT_APPROVABLE` se o pedido não ficar aprovado (ex.: vencido).
+- (2026-10-09) `POST /api/pedidos`: reenvio com a mesma `idempotencyKey` de um pedido já cancelado ou vencido sem cobrança responde 409 `ORDER_NOT_PAYABLE`.
+- (2026-10-09) O e-mail de pedido confirmado ficou como `// TODO(T18): e-mail` em `payment-sync.ts` e em `demo/aprovar` (a T18, passo 3, faz a troca). As rotas de `api/admin/auth` ainda usam o `rateLimit` e o `authErrorResponse` locais.
