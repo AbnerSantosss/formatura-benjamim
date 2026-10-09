@@ -1,64 +1,320 @@
-body:has(.thanks-viewport) > .demo-banner { display: none; }
-.thanks-viewport { position: relative; isolation: isolate; height: 100vh; height: 100dvh; width: 100%; display: grid; grid-template-rows: 60px minmax(0,1fr) 36px; color: white; background: #062e66; }
-.thanks-viewport::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 92% 10%, #ffc92820, transparent 35%), radial-gradient(ellipse at 80% 85%, #3f92dd25, transparent 45%); }
-.thanks-family-background { position: absolute; inset: 0 auto 0 0; width: 59%; z-index: -2; overflow: hidden; }
-.thanks-family-background img { object-fit: cover; object-position: center 28%; }
-.thanks-family-background::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #062e6610 60%, #062e6640 84%, #062e66 100%), linear-gradient(0deg, #062e66 0%, #062e6620 28%, transparent 75%, #062e6680 100%); }
-.thanks-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 28px; background: #062e6633; }
-.thanks-header .brand { color: white; font-size: 20px; }
-.thanks-header .brand-sub { color: #ffdd66; font-size: 7px; }
-.thanks-header .brand-icon { width: 34px; height: 34px; }
-.thanks-header > span { font-size: 9px; letter-spacing: 2px; color: #ffe596; }
-.thanks-stage { min-height: 0; display: grid; place-items: center; padding: 10px 3vw 10px 54%; }
-.thanks-content { width: min(100%,520px); max-height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
-.thanks-stage .demo-payment-card { width: 100%; min-height: 0; overflow-y: auto; margin: 0; padding: 24px; text-align: left; background: #ffffff0c; border: 1px solid #ffffff25; box-shadow: 0 16px 40px #001a3920; border-radius: 22px; color: white; scrollbar-width: thin; backdrop-filter: blur(10px); }
-.thanks-stage .demo-chip { display: inline-flex; gap: 7px; align-items: center; background: #e4fff018; border: 1px solid #b3efd84d; color: #c3f7df; font-size: 9px; padding: 7px 10px; }
-.thanks-family-label { display: block; margin: 28px 0 10px; font-size: 10px; letter-spacing: 2px; color: #ffe49b; }
-.thanks-stage .demo-payment-card h1 { color: #ffdf71; font-size: clamp(30px,3.5vw,48px); line-height: 1.08; margin: 0 0 20px; letter-spacing: -1px; }
-.thanks-stage .demo-payment-card > p { color: #e1efff; font-size: 14px; line-height: 1.6; max-width: 430px; margin: 0; }
-.thanks-stage .thanks-receipt { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 15px; margin: 22px 0 10px; max-width: 390px; background: #ffffff0d; border: 1px solid #ffffff35; border-radius: 14px; }
-.thanks-receipt > span:first-child { font-size: 11px; }
-.thanks-stage .thanks-receipt > strong { font-size: 26px; line-height: 1.2; }
-.thanks-stage .thanks-receipt > span:last-child { flex-basis: 100%; font-size: 10px; display: flex; align-items: center; gap: 5px; color: #b4f3d3; }
-.thanks-stage .thanks-note { font-size: 10px !important; color: #adc6e0 !important; }
-.thanks-stage .thanks-signature { display: block; flex-shrink: 0; text-align: center; margin: 0; color: #ffdf71; font-size: clamp(32px,3.6vw,52px); line-height: 1.1; text-shadow: 0 2px 16px #001b49; }
-.thanks-signature svg { width: .5em; height: .5em; }
-.thanks-stage .thanks-note { margin-bottom: 24px !important; }
-.thanks-signature svg { display: inline-block; vertical-align: middle; }
-.thanks-stage .button { font-size: 13px; min-height: 44px; max-width: 390px; margin: 0; padding: 12px 20px; }
-.thanks-stage .payment-links { border: none; margin: 8px 0 0; padding: 0; justify-content: flex-start; gap: 20px; }
-.thanks-stage .payment-links a { color: #d7e9ff; min-height: 44px; font-size: 10px; }
-.thanks-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 24px; font-size: 9px; color: #bdd5ee; background: #062e6655; }
-.thanks-footer a { min-height: 32px; display: flex; align-items: center; }
-@media(max-width:800px) {
- .thanks-viewport { grid-template-rows: 54px minmax(0,1fr) 32px; }
- .thanks-family-background { top: 54px; width: 100%; height: calc(46dvh - 54px); max-height: 426px; }
- .thanks-family-background img { object-position: center 15%; }
- .thanks-family-background::after { background: linear-gradient(0deg,#062e66 0%,#062e6680 18%,transparent 50%),linear-gradient(180deg,#062e6680,transparent 35%); }
- .thanks-header { padding: 8px 14px; }
- .thanks-header > span { display: none; }
- .thanks-stage { padding: min(26dvh,250px) 18px 0; }
- .thanks-content { width: min(100%,430px); gap: 10px; }
- .thanks-stage .demo-payment-card { padding: 18px 16px; text-align: center; background: #ffffff0f; }
- .thanks-stage .demo-chip { font-size: 8px; padding: 5px 8px; }
- .thanks-family-label { margin: 12px 0 8px; font-size: 9px; }
- .thanks-stage .demo-payment-card h1 { font-size: 29px; margin-bottom: 12px; }
- .thanks-stage .demo-payment-card > p { font-size: 12px; }
- .thanks-stage .thanks-receipt { margin: 14px auto 8px; padding: 12px; gap: 7px; }
- .thanks-stage .thanks-receipt > strong { font-size: 23px; }
- .thanks-stage .thanks-receipt > span:last-child { justify-content: center; }
- .thanks-stage .thanks-signature { font-size: 32px; }
- .thanks-stage .thanks-note { margin-bottom: 0 !important; }
- .thanks-stage .button { margin: 0 auto; }
- .thanks-stage .payment-links { justify-content: center; margin: 3px 0 0; }
- .thanks-footer { padding: 0 12px; font-size: 8px; }
+body:has(.thanks-viewport) > .demo-banner {
+  display: none;
 }
-@media(max-height:740px) and (max-width:800px) {
- .thanks-stage { padding-top: 23dvh; }
- .thanks-stage .demo-payment-card { padding: 12px; }
- .thanks-family-label { margin: 8px 0 6px; }
- .thanks-stage .demo-payment-card h1 { font-size: 25px; margin-bottom: 8px; }
- .thanks-stage .demo-payment-card > p { font-size: 11px; line-height: 1.4; }
- .thanks-stage .thanks-receipt { margin-top: 10px; padding: 9px; }
- .thanks-stage .thanks-signature { font-size: 28px; }
+.thanks-viewport {
+  position: relative;
+  isolation: isolate;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  display: grid;
+  grid-template-rows: 60px minmax(0, 1fr) 36px;
+  color: white;
+  background: #062e66;
+}
+.thanks-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 92% 10%, #ffc92820, transparent 35%),
+    radial-gradient(ellipse at 80% 85%, #3f92dd25, transparent 45%);
+}
+.thanks-family-background {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 59%;
+  z-index: -2;
+  overflow: hidden;
+}
+.thanks-family-background img {
+  object-fit: cover;
+  object-position: center 28%;
+}
+.thanks-family-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #062e6610 60%, #062e6640 84%, #062e66 100%),
+    linear-gradient(0deg, #062e66 0%, #062e6620 28%, transparent 75%, #062e6680 100%);
+}
+.thanks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 28px;
+  background: #062e6633;
+}
+.thanks-header .brand {
+  color: white;
+  font-size: 20px;
+}
+.thanks-header .brand-sub {
+  color: #ffdd66;
+  font-size: 7px;
+}
+.thanks-header .brand-icon {
+  width: 34px;
+  height: 34px;
+}
+.thanks-header > span {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #ffe596;
+}
+.thanks-stage {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 10px 3vw 10px 54%;
+}
+.thanks-content {
+  width: min(100%, 520px);
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.thanks-stage .demo-payment-card {
+  width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 24px;
+  text-align: left;
+  background: #ffffff0c;
+  border: 1px solid #ffffff25;
+  box-shadow: 0 16px 40px #001a3920;
+  border-radius: 22px;
+  color: white;
+  scrollbar-width: thin;
+  backdrop-filter: blur(10px);
+}
+.thanks-stage .demo-chip {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  background: #e4fff018;
+  border: 1px solid #b3efd84d;
+  color: #c3f7df;
+  font-size: 9px;
+  padding: 7px 10px;
+}
+.thanks-family-label {
+  display: block;
+  margin: 28px 0 10px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #ffe49b;
+}
+.thanks-stage .demo-payment-card h1 {
+  color: #ffdf71;
+  font-size: clamp(30px, 3.5vw, 48px);
+  line-height: 1.08;
+  margin: 0 0 20px;
+  letter-spacing: -1px;
+}
+.thanks-stage .demo-payment-card > p {
+  color: #e1efff;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 430px;
+  margin: 0;
+}
+.thanks-stage .thanks-receipt {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 15px;
+  margin: 22px 0 10px;
+  max-width: 390px;
+  background: #ffffff0d;
+  border: 1px solid #ffffff35;
+  border-radius: 14px;
+}
+.thanks-receipt > span:first-child {
+  font-size: 11px;
+}
+.thanks-stage .thanks-receipt > strong {
+  font-size: 26px;
+  line-height: 1.2;
+}
+.thanks-stage .thanks-receipt > span:last-child {
+  flex-basis: 100%;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #b4f3d3;
+}
+.thanks-stage .thanks-note {
+  font-size: 10px !important;
+  color: #adc6e0 !important;
+}
+.thanks-stage .thanks-signature {
+  display: block;
+  flex-shrink: 0;
+  text-align: center;
+  margin: 0;
+  color: #ffdf71;
+  font-size: clamp(32px, 3.6vw, 52px);
+  line-height: 1.1;
+  text-shadow: 0 2px 16px #001b49;
+}
+.thanks-signature svg {
+  width: 0.5em;
+  height: 0.5em;
+}
+.thanks-stage .thanks-note {
+  margin-bottom: 24px !important;
+}
+.thanks-signature svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+.thanks-stage .button {
+  font-size: 13px;
+  min-height: 44px;
+  max-width: 390px;
+  margin: 0;
+  padding: 12px 20px;
+}
+.thanks-stage .payment-links {
+  border: none;
+  margin: 8px 0 0;
+  padding: 0;
+  justify-content: flex-start;
+  gap: 20px;
+}
+.thanks-stage .payment-links a {
+  color: #d7e9ff;
+  min-height: 44px;
+  font-size: 10px;
+}
+.thanks-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  font-size: 9px;
+  color: #bdd5ee;
+  background: #062e6655;
+}
+.thanks-footer a {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+@media (max-width: 800px) {
+  .thanks-viewport {
+    grid-template-rows: 54px minmax(0, 1fr) 32px;
+  }
+  .thanks-family-background {
+    top: 54px;
+    width: 100%;
+    height: calc(46dvh - 54px);
+    max-height: 426px;
+  }
+  .thanks-family-background img {
+    object-position: center 15%;
+  }
+  .thanks-family-background::after {
+    background:
+      linear-gradient(0deg, #062e66 0%, #062e6680 18%, transparent 50%),
+      linear-gradient(180deg, #062e6680, transparent 35%);
+  }
+  .thanks-header {
+    padding: 8px 14px;
+  }
+  .thanks-header > span {
+    display: none;
+  }
+  .thanks-stage {
+    padding: min(26dvh, 250px) 18px 0;
+  }
+  .thanks-content {
+    width: min(100%, 430px);
+    gap: 10px;
+  }
+  .thanks-stage .demo-payment-card {
+    padding: 18px 16px;
+    text-align: center;
+    background: #ffffff0f;
+  }
+  .thanks-stage .demo-chip {
+    font-size: 8px;
+    padding: 5px 8px;
+  }
+  .thanks-family-label {
+    margin: 12px 0 8px;
+    font-size: 9px;
+  }
+  .thanks-stage .demo-payment-card h1 {
+    font-size: 29px;
+    margin-bottom: 12px;
+  }
+  .thanks-stage .demo-payment-card > p {
+    font-size: 12px;
+  }
+  .thanks-stage .thanks-receipt {
+    margin: 14px auto 8px;
+    padding: 12px;
+    gap: 7px;
+  }
+  .thanks-stage .thanks-receipt > strong {
+    font-size: 23px;
+  }
+  .thanks-stage .thanks-receipt > span:last-child {
+    justify-content: center;
+  }
+  .thanks-stage .thanks-signature {
+    font-size: 32px;
+  }
+  .thanks-stage .thanks-note {
+    margin-bottom: 0 !important;
+  }
+  .thanks-stage .button {
+    margin: 0 auto;
+  }
+  .thanks-stage .payment-links {
+    justify-content: center;
+    margin: 3px 0 0;
+  }
+  .thanks-footer {
+    padding: 0 12px;
+    font-size: 8px;
+  }
+}
+@media (max-height: 740px) and (max-width: 800px) {
+  .thanks-stage {
+    padding-top: 23dvh;
+  }
+  .thanks-stage .demo-payment-card {
+    padding: 12px;
+  }
+  .thanks-family-label {
+    margin: 8px 0 6px;
+  }
+  .thanks-stage .demo-payment-card h1 {
+    font-size: 25px;
+    margin-bottom: 8px;
+  }
+  .thanks-stage .demo-payment-card > p {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .thanks-stage .thanks-receipt {
+    margin-top: 10px;
+    padding: 9px;
+  }
+  .thanks-stage .thanks-signature {
+    font-size: 28px;
+  }
 }

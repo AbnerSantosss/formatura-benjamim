@@ -3,9 +3,78 @@ import Link from 'next/link';
 import { Header, Footer } from '@/components/shared';
 
 export const dynamicParams = false;
-export function generateStaticParams() { return [{ legal: 'privacidade' }, { legal: 'termos' }]; }
+export function generateStaticParams() {
+  return [{ legal: 'privacidade' }, { legal: 'termos' }];
+}
 export default async function Legal({ params }: { params: Promise<{ legal: string }> }) {
   const { legal } = await params;
   if (!['privacidade', 'termos'].includes(legal)) notFound();
-  return <><Header checkout /><main id="conteudo" className="legal-page container"><span className="eyebrow">FORMATURA DO BENJAMIM</span><h1>{legal === 'privacidade' ? 'Sua privacidade importa.' : 'Sobre esta campanha.'}</h1><p className="legal-intro">Texto inicial da prévia visual. As informações abaixo precisam ser revisadas e completadas antes da abertura das contribuições.</p>{legal === 'privacidade' ? <><h2>Dados nesta versão</h2><p>Os campos do checkout são apenas uma demonstração da interface. O site não envia nem armazena nome, CPF, WhatsApp ou e-mail. Não insira informações reais nesta prévia.</p><h2>Simulações neste navegador</h2><p>O localStorage guarda código aleatório, produto, modalidade, números escolhidos, valor, datas e status de testes. A sessão demonstrativa usa sessionStorage. Esses dados não são compartilhados entre dispositivos e podem ser apagados nas configurações do backoffice.</p><h2>Antes da publicação</h2><p>A família responsável deverá informar seu contato, a finalidade de cada dado solicitado, o prazo de retenção e o canal para acesso, correção ou exclusão. A coleta deve se limitar aos dados necessários.</p><h2>Pagamentos</h2><p>A integração prevista é com o Mercado Pago. Ela ainda não está ativa. O tratamento de dados pelo provedor e as condições aplicáveis deverão ser informados antes da ativação.</p></> : <><h2>Uma iniciativa da família</h2><p>Esta prévia demonstra duas modalidades para apoiar a formatura do ABC do Benjamim: números das cestas e colaboração avulsa. A escola não organiza a campanha e não é destinatária da arrecadação.</p><h2>Objetivo da arrecadação</h2><p>A meta bruta é de R$ 2.500: R$ 2.000 para a formatura, R$ 300 para despesas adicionais e uma reserva para taxas de pagamento. O protótipo oferece escolha de números para as cestas Boticário e colaboração avulsa sem números. R$ 5 correspondem a 10 números, em uma lista de 5.000, dividida em blocos de 100.</p><h2>Disponibilidade</h2><p>Esta versão contém um fluxo de pagamento e um painel inteiramente simulados. Não recebe pagamentos. A escolha e a reserva de números são simuladas e locais; não há sorteio real, pagamento ou integração com gateway. A ativação de cobrança por números depende de validação jurídica e aceitação expressa do provedor. Cadastrar a operação como produto não muda sua natureza. Contato da família, condições de reembolso e destinação de eventual saldo excedente devem ser definidos antes do lançamento.</p></>}<Link className="button" href="/">Voltar à campanha</Link></main><Footer /></>;
+  return (
+    <>
+      <Header checkout />
+      <main id="conteudo" className="legal-page container">
+        <span className="eyebrow">FORMATURA DO BENJAMIM</span>
+        <h1>{legal === 'privacidade' ? 'Sua privacidade importa.' : 'Sobre esta campanha.'}</h1>
+        <p className="legal-intro">
+          Texto inicial da prévia visual. As informações abaixo precisam ser revisadas e completadas antes da
+          abertura das contribuições.
+        </p>
+        {legal === 'privacidade' ? (
+          <>
+            <h2>Dados nesta versão</h2>
+            <p>
+              Os campos do checkout são apenas uma demonstração da interface. O site não envia nem armazena
+              nome, CPF, WhatsApp ou e-mail. Não insira informações reais nesta prévia.
+            </p>
+            <h2>Simulações neste navegador</h2>
+            <p>
+              O localStorage guarda código aleatório, produto, modalidade, números escolhidos, valor, datas e
+              status de testes. A sessão demonstrativa usa sessionStorage. Esses dados não são compartilhados
+              entre dispositivos e podem ser apagados nas configurações do backoffice.
+            </p>
+            <h2>Antes da publicação</h2>
+            <p>
+              A família responsável deverá informar seu contato, a finalidade de cada dado solicitado, o prazo
+              de retenção e o canal para acesso, correção ou exclusão. A coleta deve se limitar aos dados
+              necessários.
+            </p>
+            <h2>Pagamentos</h2>
+            <p>
+              A integração prevista é com o Mercado Pago. Ela ainda não está ativa. O tratamento de dados pelo
+              provedor e as condições aplicáveis deverão ser informados antes da ativação.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2>Uma iniciativa da família</h2>
+            <p>
+              Esta prévia demonstra duas modalidades para apoiar a formatura do ABC do Benjamim: números das
+              cestas e colaboração avulsa. A escola não organiza a campanha e não é destinatária da
+              arrecadação.
+            </p>
+            <h2>Objetivo da arrecadação</h2>
+            <p>
+              A meta bruta é de R$ 2.500: R$ 2.000 para a formatura, R$ 300 para despesas adicionais e uma
+              reserva para taxas de pagamento. O protótipo oferece escolha de números para as cestas Boticário
+              e colaboração avulsa sem números. R$ 5 correspondem a 10 números, em uma lista de 5.000,
+              dividida em blocos de 100.
+            </p>
+            <h2>Disponibilidade</h2>
+            <p>
+              Esta versão contém um fluxo de pagamento e um painel inteiramente simulados. Não recebe
+              pagamentos. A escolha e a reserva de números são simuladas e locais; não há sorteio real,
+              pagamento ou integração com gateway. A ativação de cobrança por números depende de validação
+              jurídica e aceitação expressa do provedor. Cadastrar a operação como produto não muda sua
+              natureza. Contato da família, condições de reembolso e destinação de eventual saldo excedente
+              devem ser definidos antes do lançamento.
+            </p>
+          </>
+        )}
+        <Link className="button" href="/">
+          Voltar à campanha
+        </Link>
+      </main>
+      <Footer />
+    </>
+  );
 }

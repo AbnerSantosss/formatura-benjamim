@@ -13,5 +13,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR" data-scroll-behavior="smooth"><body><a className="skip-link" href="#conteudo">Pular para o conteúdo</a><div className="demo-banner">DEMONSTRAÇÃO · Nenhum pagamento real é realizado <Link href="/admin/">Backoffice</Link></div>{children}</body></html>;
+  return (
+    <html lang="pt-BR" data-scroll-behavior="smooth">
+      <body>
+        <a className="skip-link" href="#conteudo">
+          Pular para o conteúdo
+        </a>
+        <div className="demo-banner">
+          DEMONSTRAÇÃO · Nenhum pagamento real é realizado <Link href="/admin/">Backoffice</Link>
+        </div>
+        {children}
+      </body>
+    </html>
+  );
 }
