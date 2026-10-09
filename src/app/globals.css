@@ -2906,7 +2906,7 @@ input:focus-visible {
 
 /* Graduation illustration keeps the center clear for the payment card. */
 .demo-payment-main {
-  background: #eaf7ff url('/images/pagamento-cartoon-chapeu-v2.png') center top / cover no-repeat;
+  background: #eaf7ff url('/images/pagamento-cartoon-chapeu-v2.webp') center top / cover no-repeat;
   padding: 56px 20px 70px;
 }
 .demo-payment-main .demo-payment-card {
@@ -2921,7 +2921,7 @@ input:focus-visible {
 }
 @media (max-width: 600px) {
   .demo-payment-main {
-    background-image: url('/images/pagamento-cartoon-chapeu-mobile.png');
+    background-image: url('/images/pagamento-cartoon-chapeu-mobile.webp');
     background-size: 100% auto;
     padding-top: 67vw;
   }

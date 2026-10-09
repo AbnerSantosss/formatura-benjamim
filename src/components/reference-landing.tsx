@@ -92,7 +92,7 @@ export default function ReferenceLanding({ summary }: LandingProps) {
         <section className="ref-hero" id="inicio">
           <Image
             className="ref-hero-background"
-            src="/images/hero-cenario.png"
+            src="/images/hero-cenario.webp"
             alt="Composição de formatura baseada na fotografia do Benjamim, com cenário escolar e livros"
             fill
             priority
@@ -290,7 +290,7 @@ export default function ReferenceLanding({ summary }: LandingProps) {
           </section>
           <section className="ref-thanks">
             <div className="ref-thanks-portrait">
-              <Image src="/images/benjamim.png" alt="Fotografia original do Benjamim" fill sizes="200px" />
+              <Image src="/images/benjamim.webp" alt="Fotografia original do Benjamim" fill sizes="200px" />
             </div>
             <div>
               <span className="ref-handwritten">

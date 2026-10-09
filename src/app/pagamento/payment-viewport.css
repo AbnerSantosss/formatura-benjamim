@@ -3,7 +3,7 @@ body:has(.payment-viewport) {
   margin: 0;
 }
 .payment-viewport {
-  --payment-art: url('/images/pagamento-cartoon-chapeu-v2.png');
+  --payment-art: url('/images/pagamento-cartoon-chapeu-v2.webp');
   position: relative;
   isolation: isolate;
   width: 100%;
@@ -208,7 +208,7 @@ body:has(.payment-viewport) {
 }
 @media (max-width: 600px) {
   .payment-viewport {
-    --payment-art: url('/images/pagamento-cartoon-chapeu-mobile.png');
+    --payment-art: url('/images/pagamento-cartoon-chapeu-mobile.webp');
     grid-template-rows: 54px minmax(0, 1fr) 32px;
   }
   .payment-viewport::after {

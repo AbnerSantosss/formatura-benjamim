@@ -537,7 +537,7 @@
   top: 0;
   width: 53%;
   height: 100%;
-  background-image: url('/images/referencia-desktop.png');
+  background-image: url('/images/referencia-desktop.webp');
   background-repeat: no-repeat;
   background-size: 405% auto;
   background-position: 33.5% 69.9%;
@@ -1495,7 +1495,7 @@
 }
 .ref-kit,
 .ref-kit.feminine {
-  background-image: url('/images/referencia-desktop.png');
+  background-image: url('/images/referencia-desktop.webp');
   background-size: 214.84% auto;
   background-position: 6.36% 69.64%;
   background-repeat: no-repeat;

@@ -110,7 +110,7 @@ export function layout(opts: {
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
         <tr>
           <td align="center" style="padding:0 0 16px;">
-            <img src="${site}/images/benjamim.png" width="120" height="120" alt="Benjamim" style="display:block;width:120px;height:120px;border:0;border-radius:60px;margin:0 auto;">
+            <img src="${site}/images/benjamim-email.png" width="120" height="120" alt="Benjamim" style="display:block;width:120px;height:120px;border:0;border-radius:60px;margin:0 auto;">
             <div style="font-family:${FONT};font-size:18px;font-weight:700;letter-spacing:1px;color:${COLORS.verde};padding-top:8px;">BENJAMIM ABC</div>
           </td>
         </tr>

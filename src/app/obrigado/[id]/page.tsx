@@ -35,7 +35,7 @@ export default async function Obrigado({ params, searchParams }: Props) {
     <div className="thanks-viewport">
       <div className="thanks-family-background">
         <Image
-          src="/images/familia-benjamim-cartoon.png"
+          src="/images/familia-benjamim-cartoon.webp"
           alt="Ilustração de Benjamim ao lado da mãe e do pai"
           fill
           sizes="(max-width: 800px) 100vw, 58vw"

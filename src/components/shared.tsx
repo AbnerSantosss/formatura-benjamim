@@ -64,7 +64,7 @@ export function Portrait({ compact = false }: { compact?: boolean }) {
       <Star className="star-doodle" size={35} aria-hidden="true" />
       <div className="portrait-frame">
         <Image
-          src="/images/benjamim.png"
+          src="/images/benjamim.webp"
           alt="Benjamim sorrindo, com sua mochila, pronto para mais um dia de descobertas"
           fill
           priority
