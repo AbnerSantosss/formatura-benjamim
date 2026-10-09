@@ -229,10 +229,10 @@ Stack `benjamim` criada a partir do repositório público `https://github.com/Ab
 - `db`: Postgres 16, sem porta publicada.
 - `migrate`: roda uma vez a cada deploy e termina (migrações, seed e, se houver `ADMIN_BOOTSTRAP_PASSWORD`, `admin:create`). Tudo idempotente.
 - `app`: a imagem `runner`. Só sobe depois que `migrate` termina sem erro.
-- `cloudflared`: liga a stack ao túnel `benjamim`. No Cloudflare, a rota `benjamim.proxserverabner.site` aponta para `http://app:3000`.
+- Não há `cloudflared` na stack. O app publica só `127.0.0.1:3470` no servidor (`APP_PORT` troca a porta), e o túnel `servidor-abner`, que já roda no servidor, tem a rota `benjamim.proxserverabner.site` → `http://localhost:3470`.
 
 ### Variáveis
-O repositório é público: nenhum valor fica nele. As variáveis ficam na própria stack do Portainer (Environment variables). As mesmas do Caminho A, com três diferenças: `SITE_DOMAIN` não existe, `NODE_ENV` e `DEMO_MODE` são fixos no compose, e entra `CLOUDFLARE_TUNNEL_TOKEN` (Cloudflare > Networking > Tunnels > benjamim).
+O repositório é público: nenhum valor fica nele. As variáveis ficam na própria stack do Portainer (Environment variables). As mesmas do Caminho A, com duas diferenças: `SITE_DOMAIN` não existe, e `NODE_ENV` e `DEMO_MODE` são fixos no compose. Nenhum token de túnel é necessário.
 O arquivo local `.env.portainer` (ignorado pelo git) guarda uma cópia do que foi carregado; na criação da stack, use "Load variables from .env file".
 
 ### Atualizar
