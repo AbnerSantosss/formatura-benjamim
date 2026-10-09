@@ -31,3 +31,6 @@ npm run typecheck && npm run lint && npm test && npm run build
 - Não devolver o token nas respostas das rotas (só por e-mail).
 - Não revelar existência de e-mail.
 - Não aceitar convite para admin desativado (`active = false` → 403).
+
+## Desvios registrados
+- (2026-10-09) Contratos reais, limitador local e o incidente de SMTP nos testes: ver [[decisoes/010-contratos-reais-da-janela-b]] (itens 10 a 12).
