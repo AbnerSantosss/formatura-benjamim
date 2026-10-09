@@ -18,13 +18,12 @@ const PAGINAS: Record<
 > = {
   privacidade: {
     titulo: 'Sua privacidade importa.',
-    intro: 'Explicamos quais dados coletamos, para que servem e como você pode pedir acesso, correção ou exclusão.',
+    intro:
+      'Explicamos quais dados coletamos, para que servem e como você pode pedir acesso, correção ou exclusão.',
     secoes: [
       {
         titulo: 'Dados que coletamos',
-        paragrafos: [
-          'Nome, CPF, telefone (WhatsApp), e-mail, números escolhidos e valor da contribuição.',
-        ],
+        paragrafos: ['Nome, CPF, telefone (WhatsApp), e-mail, números escolhidos e valor da contribuição.'],
       },
       {
         titulo: 'Para que usamos',
@@ -97,9 +96,7 @@ const PAGINAS: Record<
       },
       {
         titulo: 'Quem pode concorrer',
-        paragrafos: [
-          'Só concorrem os números de contribuições confirmadas até o momento do sorteio.',
-        ],
+        paragrafos: ['Só concorrem os números de contribuições confirmadas até o momento do sorteio.'],
       },
       {
         titulo: 'Data do sorteio',
