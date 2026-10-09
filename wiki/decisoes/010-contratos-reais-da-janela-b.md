@@ -1,0 +1,30 @@
+---
+tipo: decisao
+atualizado: 2026-10-09
+tags: [adr, env, build, pedidos, auth, email]
+---
+
+# ADR 010 — Contratos reais da janela B (build, pedidos, auth, e-mail)
+
+**Status:** aceita em 2026-10-09 pelo orquestrador, durante a execução do plano. Os itens marcados "decisão do dono" seguem o texto literal do plano até ele se pronunciar.
+
+## Contexto
+T06, T14 e T15 foram escritas antes de o schema e o `env.ts` existirem. Na execução apareceram diferenças entre o texto das tarefas e o código real. Esta página é a referência para T08, T16, T17, T18 e seguintes; onde ela divergir do texto de uma tarefa, vale esta página e o código.
+
+## Decisões
+1. **Build.** `next build` roda com `NODE_ENV=production` e avalia `src/server/env.ts` ao coletar as rotas. As exigências de produção (sem `DEMO_MODE`, sem gateway `demo`, segredos obrigatórios) passam a valer só quando o servidor sobe: durante o build (`NEXT_PHASE=phase-production-build`) são ignoradas. As variáveis básicas (`NEXT_PUBLIC_SITE_URL`, `DATABASE_URL`) continuam obrigatórias também no build.
+2. **Scripts `tsx`.** Script que importa `@/server/*` com `server-only` roda com `tsx --conditions=react-server` (ex.: `email:test`). `admin:create` não importa esses módulos e cria o próprio `PrismaClient`.
+3. **Serviço de pedidos** (`src/server/orders.service.ts`): `applyProviderStatus(ev, { now })`, `markRefunded(orderId, actorId, { now })`, `getOrderPublic(id, token, { now })`; `cancelOrder`, `markRefunded` e `applyProviderStatus` devolvem `{ changed, status }`; pedido inexistente lança `NotFoundError`; produto inexistente ou inativo lança `ValidationError` (422). `CreatedOrder` é `{ order, product, contributor, payment }` e o `contributor` vem sem CPF: a rota usa o CPF do input validado ou `decryptCpf`. `createOrder` expira reservas vencidas dentro da própria transação. A função `approve(orderId)` citada em [[fluxos/pagamento-pix]] não existe; é `applyProviderStatus`.
+4. **Erros.** `AppError(code, message, status)` em `src/server/errors.ts`. Auditoria em `src/server/audit.ts`: `AuditLog` não tem `orderId` (vai em `target`) e chaves sensíveis são descartadas do `meta`.
+5. **Auth.** `Session` tem `userId`/`user` (não `adminId`) e não guarda `lastSeenAt`, `ip` nem `userAgent`. "Admin ativo" é `disabledAt === null`. `authErrorResponse(error)` e o `rateLimit` local de `login/route.ts` são provisórios: a T08 cria `src/server/http.ts` e `src/server/rate-limit.ts` e deve trocá-los. `admin:create` não aceita senha por argumento; senha vinda do ambiente grava `mustChangePassword = true`.
+6. **E-mail.** `sendEmail<T>(template, to, data)` tipado por template; logo em `public/images/benjamim.png`; cada template aceita `siteUrl` opcional.
+7. **Testes de integração.** `.env.test` é versionado (só valores fixos de teste) e o setup recusa rodar fora de `localhost:5443/test`. Arquivos rodam em série. Helpers em `tests/integration/db.ts` (`testPrisma`, `truncateAll`, `seedCatalog`).
+
+## Decisão do dono (pendente, não bloqueia)
+- **Pix pago depois do prazo.** Hoje, pagamento aprovado que chega com a reserva de 10 minutos vencida não aprova o pedido: fica `EXPIRED`, os números são liberados, grava `order.paid_after_expiry` e o estorno é manual. É o texto literal da T06. Alternativa: tolerância de alguns minutos para aviso atrasado, se os números ainda estiverem livres.
+- **Preço e total de números fixos no código.** A validação usa as constantes do domínio (R$ 0,50 e 5.000), não `Product.unitCents` nem `Campaign.totalNumbers`. Editar esses campos no painel não muda a regra.
+- **Senha inicial do admin.** O `ADMIN_BOOTSTRAP_PASSWORD` do `.env` local não atende à política (10+ caracteres, letra e número), então `npm run admin:create` recusa e o OWNER ainda não existe no banco de desenvolvimento. O dono precisa trocar o valor no `.env` e rodar o comando.
+
+## Consequências
+- `npm run build` funciona na máquina de desenvolvimento com o `.env` de demonstração; subir o servidor em produção com esse `.env` continua sendo recusado.
+- T22 revisa: IP do rate limit vem de `x-forwarded-for` (confiável só atrás do Caddy); `MAIL_FROM` opcional em produção.

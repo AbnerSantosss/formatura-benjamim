@@ -105,7 +105,10 @@ const baseSchema = z.object({
 
 const envSchema = baseSchema
   .superRefine((data, ctx) => {
-    const isProduction = data.NODE_ENV === 'production';
+    // `next build` roda com NODE_ENV=production e avalia este módulo ao coletar as rotas, ainda sem
+    // os segredos de produção. As exigências abaixo valem quando o servidor sobe, não no build (ADR 010).
+    const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
+    const isProduction = data.NODE_ENV === 'production' && !isBuild;
 
     if (isProduction && data.DEMO_MODE === true) {
       ctx.addIssue({

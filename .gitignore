@@ -4,6 +4,7 @@ out/
 *.tsbuildinfo
 .env*
 !.env.example
+!.env.test
 test-results/
 
 # Registro automático de sessões (contém pedidos na íntegra)

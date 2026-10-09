@@ -11,9 +11,12 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,mjs}\"",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run -c vitest.integration.config.ts",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
+    "admin:create": "tsx scripts/admin-create.ts",
+    "email:test": "tsx --conditions=react-server scripts/email-test.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

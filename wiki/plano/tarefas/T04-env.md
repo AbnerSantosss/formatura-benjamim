@@ -41,3 +41,6 @@ grep -n "DEMO_MODE não pode" src/server/env.ts
 ## Não fazer
 - Não ler `process.env` em nenhum outro arquivo de servidor a partir daqui; tudo passa por `env`.
 - Não imprimir valores de variáveis em logs ou erros.
+
+## Desvios registrados
+- (2026-10-09) As exigências de produção são ignoradas durante `next build` (`NEXT_PHASE=phase-production-build`); ver [[decisoes/010-contratos-reais-da-janela-b]].

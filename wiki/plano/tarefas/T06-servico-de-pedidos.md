@@ -56,3 +56,4 @@ grep -rn "console.log" src/server/orders.service.ts ; echo "(esperado: nada)"
 
 ## Desvios registrados
 - 2026-10-09: portas do host trocadas por conflito com outros containers da máquina. Onde este arquivo diz `5432` (host) use `5442`; onde diz `5433` use `5443`. Ver [[decisoes/008-portas-do-postgres-local]].
+- (2026-10-09) Assinaturas com `now`, retorno `{ changed, status }`, helpers de teste extras e `.env.test` versionado: ver [[decisoes/010-contratos-reais-da-janela-b]].
