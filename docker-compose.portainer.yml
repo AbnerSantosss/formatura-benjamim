@@ -1,0 +1,89 @@
+# Produção via Portainer (stack a partir do Git) + túnel Cloudflare.
+# Procedimento: wiki/operacao/deploy.md (Caminho B).
+#
+# Nenhum valor fica neste arquivo: tudo vem das variáveis da stack no Portainer.
+# Não há porta publicada no host; quem atende a internet é o `cloudflared`, e o hostname público do
+# túnel aponta para http://app:3000.
+x-app-env: &app-env
+  NODE_ENV: production
+  NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?defina NEXT_PUBLIC_SITE_URL=https://<dominio>}
+  DATABASE_URL: postgresql://benjamim:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}@db:5432/benjamim
+  AUTH_SECRET: ${AUTH_SECRET:-}
+  CPF_ENCRYPTION_KEY: ${CPF_ENCRYPTION_KEY:-}
+  CRON_SECRET: ${CRON_SECRET:-}
+  PAYMENT_GATEWAY: ${PAYMENT_GATEWAY:-mercadopago}
+  DEMO_MODE: "false"
+  MP_ENVIRONMENT: ${MP_ENVIRONMENT:-production}
+  MP_API_FLAVOR: ${MP_API_FLAVOR:-orders}
+  MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN:-}
+  MP_PUBLIC_KEY: ${MP_PUBLIC_KEY:-}
+  MP_WEBHOOK_SECRET: ${MP_WEBHOOK_SECRET:-}
+  SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_SECURE: ${SMTP_SECURE:-false}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASS: ${SMTP_PASS:-}
+  MAIL_FROM: ${MAIL_FROM:-}
+  MAIL_REPLY_TO: ${MAIL_REPLY_TO:-}
+  CAMPAIGN_GOAL_CENTS: ${CAMPAIGN_GOAL_CENTS:-250000}
+  CAMPAIGN_COSTS_CENTS: ${CAMPAIGN_COSTS_CENTS:-0}
+  INSTAGRAM_FATHER_URL: ${INSTAGRAM_FATHER_URL:-}
+  INSTAGRAM_MOTHER_URL: ${INSTAGRAM_MOTHER_URL:-}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: benjamim
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+      POSTGRES_DB: benjamim
+    volumes: [ "pgdata:/var/lib/postgresql/data" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U benjamim" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  # Roda uma vez a cada deploy e termina: migrações, seed (idempotente) e, se houver senha de
+  # bootstrap, o administrador inicial (idempotente; não mexe em quem já entrou).
+  migrate:
+    build:
+      context: .
+      target: tools
+    restart: "no"
+    environment:
+      <<: *app-env
+      ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
+      ADMIN_BOOTSTRAP_NAME: ${ADMIN_BOOTSTRAP_NAME:-}
+      ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
+    command:
+      - sh
+      - -c
+      - >-
+        npx prisma migrate deploy && npm run db:seed &&
+        if [ -n "$$ADMIN_BOOTSTRAP_PASSWORD" ]; then npm run admin:create; fi
+    depends_on:
+      db: { condition: service_healthy }
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        # Embutido no bundle em tempo de build. Não é segredo.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?defina NEXT_PUBLIC_SITE_URL=https://<dominio>}
+    restart: unless-stopped
+    environment: *app-env
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    expose: [ "3000" ]
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?defina CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on: [ app ]
+volumes:
+  pgdata: {}
