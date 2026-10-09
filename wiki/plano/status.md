@@ -34,4 +34,4 @@ tags: [plano, status]
 | T21 | concluída | 2026-10-09 08:42 |
 | T22 | concluída | 2026-10-09 09:18 |
 | T23 | concluída | 2026-10-09 09:32 |
-| T24 | repo público, túnel e rota criados; stack do Portainer aguardando o dono carregar as variáveis e o token do túnel | 2026-10-09 |
+| T24 | site no ar em `benjamim.proxserverabner.site` (stack no Portainer, túnel `servidor-abner` → `localhost:3470`); faltam chaves do Mercado Pago no painel, agendador e backup | 2026-10-09 |
