@@ -1,13 +1,14 @@
 import { after } from 'next/server';
 import { z } from 'zod';
 import { assertSameOrigin } from '@/server/auth/csrf';
-import { authErrorResponse } from '@/server/auth/require-admin';
 import { RESET_TTL_MS, issueToken } from '@/server/auth/tokens';
 import { randomToken } from '@/server/crypto';
 import { prisma } from '@/server/db';
 import { sendEmail } from '@/server/email/send';
 import { env } from '@/server/env';
 import { ValidationError } from '@/server/errors';
+import { fail, getClientIp, json, tooManyAttempts } from '@/server/http';
+import { RATE_LIMITS, rateLimit } from '@/server/rate-limit';
 
 const bodySchema = z.object({
   email: z.string().trim().toLowerCase().min(1).max(254),
@@ -15,43 +16,6 @@ const bodySchema = z.object({
 
 // A resposta nunca sai antes disto, exista ou não o e-mail: o tempo não denuncia o cadastro.
 const MIN_RESPONSE_MS = 300;
-
-// Limite de tentativas: 5 a cada 15 minutos, por IP e por e-mail (memória do processo).
-// Cópia local do limitador de `login/route.ts`, provisória até a T08 criar `src/server/rate-limit.ts`.
-const LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
-const attempts = new Map<string, number[]>();
-
-function rateLimit(
-  key: string,
-  { limit, windowMs }: { limit: number; windowMs: number },
-): { ok: boolean; retryAfterSec: number } {
-  const now = Date.now();
-  const recent = (attempts.get(key) ?? []).filter((at) => now - at < windowMs);
-  if (recent.length >= limit) {
-    attempts.set(key, recent);
-    return { ok: false, retryAfterSec: Math.max(1, Math.ceil((recent[0] + windowMs - now) / 1000)) };
-  }
-  recent.push(now);
-  attempts.set(key, recent);
-  if (attempts.size > 5000) {
-    for (const [k, list] of attempts) {
-      if (list.every((at) => now - at >= windowMs)) attempts.delete(k);
-    }
-  }
-  return { ok: true, retryAfterSec: 0 };
-}
-
-function tooManyAttempts(retryAfterSec: number): Response {
-  return Response.json(
-    { code: 'RATE_LIMITED', message: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' },
-    { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
-  );
-}
-
-function clientIp(req: Request): string {
-  const forwarded = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwarded || req.headers.get('x-real-ip')?.trim() || 'desconhecido';
-}
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,7 +25,7 @@ export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
 
-    const byIp = rateLimit(`forgot:ip:${clientIp(req)}`, LIMIT);
+    const byIp = rateLimit(`forgot:ip:${getClientIp(req)}`, RATE_LIMITS.auth);
     if (!byIp.ok) return tooManyAttempts(byIp.retryAfterSec);
 
     const parsed = bodySchema.safeParse(await req.json().catch(() => null));
@@ -69,7 +33,7 @@ export async function POST(req: Request) {
     const { email } = parsed.data;
 
     // Vale para qualquer endereço, cadastrado ou não: impede encher a caixa de alguém de e-mails.
-    const byEmail = rateLimit(`forgot:email:${email}`, LIMIT);
+    const byEmail = rateLimit(`forgot:email:${email}`, RATE_LIMITS.auth);
     if (!byEmail.ok) return tooManyAttempts(byEmail.retryAfterSec);
 
     const startedAt = Date.now();
@@ -91,8 +55,8 @@ export async function POST(req: Request) {
     }
     await sleep(Math.max(0, MIN_RESPONSE_MS - (Date.now() - startedAt)));
 
-    return Response.json({ ok: true });
+    return json({ ok: true });
   } catch (error) {
-    return authErrorResponse(error);
+    return fail(error);
   }
 }

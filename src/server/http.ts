@@ -1,6 +1,7 @@
 import 'server-only';
 import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
+import { getClientIp } from '@/server/client-ip';
 import { env } from '@/server/env';
 import { AppError, OrderConflictError, ValidationError } from '@/server/errors';
 
@@ -63,22 +64,21 @@ export function fail(error: unknown): Response {
 }
 
 /** 429 com `Retry-After`. */
-export function tooManyRequests(retryAfterSec: number): Response {
-  const body: ErrorBody = {
-    code: 'RATE_LIMITED',
-    message: 'Muitas tentativas. Aguarde um instante e tente de novo.',
-  };
+export function tooManyRequests(
+  retryAfterSec: number,
+  message = 'Muitas tentativas. Aguarde um instante e tente de novo.',
+): Response {
+  const body: ErrorBody = { code: 'RATE_LIMITED', message };
   return json(body, { status: 429, headers: { 'Retry-After': String(Math.max(1, retryAfterSec)) } });
 }
 
-/**
- * IP do cliente: primeiro valor de `x-forwarded-for`, senão `x-real-ip`.
- * Só é confiável atrás do proxy reverso (ADR 010; revisão na T22).
- */
-export function getClientIp(req: Request): string {
-  const forwarded = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwarded || req.headers.get('x-real-ip')?.trim() || 'desconhecido';
+/** 429 das rotas de `/api/admin/auth/**` (janela de 15 minutos: a mensagem fala em minutos). */
+export function tooManyAttempts(retryAfterSec: number): Response {
+  return tooManyRequests(retryAfterSec, 'Muitas tentativas. Aguarde alguns minutos e tente de novo.');
 }
+
+// IP do cliente: a única implementação fica em `src/server/client-ip.ts` (regra e motivo lá).
+export { getClientIp };
 
 /** Corpo cru, para validar assinatura de webhook. Nunca usar `req.json()` antes de validar. */
 export function readRawBody(req: Request): Promise<string> {

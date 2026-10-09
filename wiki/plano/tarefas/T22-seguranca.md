@@ -44,3 +44,15 @@ curl -sI http://127.0.0.1:3180/ | grep -i "x-frame-options\|content-security-pol
 - Não "resolver" um item do checklist removendo a proteção.
 - Não desligar a CSP por conveniência; ajustar as fontes permitidas.
 - Não alterar o design das páginas públicas para "passar" na comparação; o original é a referência.
+
+## Desvios registrados
+- 2026-10-09: o grep do critério (`demo-store|contribution.tsx|demo-payment|demo-thanks`) não zera: sobram 39 ocorrências das classes CSS `demo-payment-card`/`demo-payment-main`, em uso em `payment-frame.tsx`, `thanks-view.tsx` e nos estilos das páginas protegidas. Renomear mexeria no JSX/CSS intocável; ficou como está. Zero ocorrências de `demo-store`, `contribution.tsx` e `demo-thanks`.
+- `npm audit --omit=dev --audit-level=high` só passou com `overrides` de `deepmerge-ts` → [[decisoes/013-override-do-deepmerge-ts]].
+- Além dos cabeçalhos pedidos: `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `poweredByHeader: false`, e `X-Robots-Tag: noindex, nofollow` + `Cache-Control: no-store` em `/admin/**`, `/pagamento/**`, `/obrigado/**` e `/api/**`.
+- A CSP de produção (sem `unsafe-eval`) bloqueava o teste de `new Function` do Zod 4 no checkout; `src/domain/validation.ts` liga `jitless` só no navegador.
+- IP do cliente: função única em `src/server/client-ip.ts`, que usa o último valor de `X-Forwarded-For` (o que o proxy grava). O comportamento do Caddy não foi testado na prática, só pela documentação. Os cinco limitadores copiados nas rotas de auth viraram `RATE_LIMITS.auth` em `src/server/rate-limit.ts`.
+- A especificação cita `POST /api/admin/configuracoes`; a rota real é `PATCH`, e foi a testada.
+- O erro 500 das rotas de auth passou do código `INTERNAL_ERROR` para `INTERNAL`.
+- Aviso de hidratação no login: não reproduzido em Chromium limpo; nenhuma mudança.
+- Removidos `src/components/contribution.tsx` (sem importador), `.openai/hosting.static.json.bak` e 29 linhas de CSS órfão do painel (`.admin-demo-notice`, `.reset-confirm > button`). Ficaram, só listados: cerca de 30 regras `.contribution*` órfãs, `scripts/baseline-demo.mjs`, `src/lib/demo-model.ts` (em uso pelo checkout).
+- Comparação visual feita pelo orquestrador: capturas novas das quatro páginas (1280 e 390 px) contra `revisao/baseline/` e contra as capturas aceitas na T13; mudam só os dados e o banner removido na T13.

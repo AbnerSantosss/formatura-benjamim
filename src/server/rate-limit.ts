@@ -4,12 +4,18 @@
 export type RateLimitOptions = { limit: number; windowMs: number };
 export type RateLimitResult = { ok: boolean; retryAfterSec: number };
 
-/** Limites das rotas públicas. Webhooks não têm limite. */
+/** Limites das rotas públicas e de autenticação do painel. Webhooks não têm limite. */
 export const RATE_LIMITS = {
   /** `POST /api/pedidos`: 10 por minuto por IP. */
   createOrder: { limit: 10, windowMs: 60_000 },
   /** `GET` públicos: 120 por minuto por IP (cada rota conta separado). */
   publicGet: { limit: 120, windowMs: 60_000 },
+  /**
+   * Rotas de `/api/admin/auth/**` (login, esqueci-senha, redefinir, aceitar-convite, conferir link):
+   * 5 a cada 15 minutos por chave. Cada rota conta separado, por IP; login e esqueci-senha contam
+   * também por e-mail.
+   */
+  auth: { limit: 5, windowMs: 15 * 60_000 },
 } as const satisfies Record<string, RateLimitOptions>;
 
 const MAX_KEYS = 5000;

@@ -37,6 +37,7 @@ Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[de
 - [[decisoes/010-contratos-reais-da-janela-b]] — build sem segredos de produção, assinaturas reais de pedidos, auth e e-mail; pendências do dono.
 - [[decisoes/011-progress-e-footer-recebem-dados-por-prop]] — `Progress` e `Footer` deixam de ler `campaign.ts`; cada página repassa os dados do banco.
 - [[decisoes/012-snapshots-visuais-a-partir-do-estado-validado]] — snapshots do Playwright nascem do estado atual, já comparado com a baseline; `revisao/baseline/` segue como referência humana.
+- [[decisoes/013-override-do-deepmerge-ts]] — `overrides` do npm fixa `deepmerge-ts` 8 (dependência do Prisma) para o `npm audit` de produção ficar sem altas.
 
 ## Integrações
 - [[integracoes/mercado-pago]] — Orders API Pix, webhook `x-signature`, estorno, sandbox.
@@ -49,6 +50,7 @@ Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[de
 - [[operacao/variaveis-de-ambiente]] — todas as variáveis, obrigatórias por ambiente.
 - [[operacao/deploy]] — Docker Compose em VPS com HTTPS; alternativa Vercel + Neon.
 - [[operacao/checklist-producao]] — o que conferir antes de ligar cobrança real.
+- [[operacao/seguranca]] — cabeçalhos, CSP, IP do cliente e limites, resultado da revisão de segurança (T22).
 
 ## Análise
 - [[analise/estado-atual]] — o que existe, o que falta, riscos e dívidas encontradas em 2026-10-09.

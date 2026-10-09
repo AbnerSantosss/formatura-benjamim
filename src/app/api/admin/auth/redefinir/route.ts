@@ -2,58 +2,22 @@ import { z } from 'zod';
 import { audit } from '@/server/audit';
 import { assertSameOrigin } from '@/server/auth/csrf';
 import { hashPassword, passwordPolicy } from '@/server/auth/password';
-import { authErrorResponse } from '@/server/auth/require-admin';
 import { consumeToken, peekToken, tokenInvalidError } from '@/server/auth/tokens';
 import { prisma } from '@/server/db';
 import { AppError, ValidationError } from '@/server/errors';
+import { fail, getClientIp, json, tooManyAttempts } from '@/server/http';
+import { RATE_LIMITS, rateLimit } from '@/server/rate-limit';
 
 const bodySchema = z.object({
   token: z.string().min(1).max(512),
   password: z.string().max(1024),
 });
 
-// Limite de tentativas: 5 a cada 15 minutos por IP (memória do processo).
-// Cópia local do limitador de `login/route.ts`, provisória até a T08 criar `src/server/rate-limit.ts`.
-const LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
-const attempts = new Map<string, number[]>();
-
-function rateLimit(
-  key: string,
-  { limit, windowMs }: { limit: number; windowMs: number },
-): { ok: boolean; retryAfterSec: number } {
-  const now = Date.now();
-  const recent = (attempts.get(key) ?? []).filter((at) => now - at < windowMs);
-  if (recent.length >= limit) {
-    attempts.set(key, recent);
-    return { ok: false, retryAfterSec: Math.max(1, Math.ceil((recent[0] + windowMs - now) / 1000)) };
-  }
-  recent.push(now);
-  attempts.set(key, recent);
-  if (attempts.size > 5000) {
-    for (const [k, list] of attempts) {
-      if (list.every((at) => now - at >= windowMs)) attempts.delete(k);
-    }
-  }
-  return { ok: true, retryAfterSec: 0 };
-}
-
-function tooManyAttempts(retryAfterSec: number): Response {
-  return Response.json(
-    { code: 'RATE_LIMITED', message: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' },
-    { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
-  );
-}
-
-function clientIp(req: Request): string {
-  const forwarded = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwarded || req.headers.get('x-real-ip')?.trim() || 'desconhecido';
-}
-
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
 
-    const byIp = rateLimit(`reset:ip:${clientIp(req)}`, LIMIT);
+    const byIp = rateLimit(`reset:ip:${getClientIp(req)}`, RATE_LIMITS.auth);
     if (!byIp.ok) return tooManyAttempts(byIp.retryAfterSec);
 
     const parsed = bodySchema.safeParse(await req.json().catch(() => null));
@@ -90,8 +54,8 @@ export async function POST(req: Request) {
       await audit('auth.password_reset', { actorId: adminId }, tx);
     });
 
-    return Response.json({ ok: true });
+    return json({ ok: true });
   } catch (error) {
-    return authErrorResponse(error);
+    return fail(error);
   }
 }

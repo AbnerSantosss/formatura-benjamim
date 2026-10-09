@@ -255,12 +255,14 @@ describe('POST /api/pedidos', () => {
   });
 
   it('limita a 10 pedidos por minuto por IP', async () => {
-    const headers = { 'x-forwarded-for': '203.0.113.7, 10.0.0.1' };
+    // O último valor é o que o proxy acrescentou; o primeiro é texto do cliente e muda a cada
+    // tentativa: inventar `X-Forwarded-For` não pode dar um limite novo.
+    const headers = (attempt: number) => ({ 'x-forwarded-for': `198.51.100.${attempt}, 203.0.113.7` });
     for (let attempt = 0; attempt < 10; attempt++) {
-      const res = await criarPedido(post('/api/pedidos', '{}', headers));
+      const res = await criarPedido(post('/api/pedidos', '{}', headers(attempt)));
       expect(res.status).toBe(422);
     }
-    const blocked = await criarPedido(post('/api/pedidos', '{}', headers));
+    const blocked = await criarPedido(post('/api/pedidos', '{}', headers(10)));
     expect(blocked.status).toBe(429);
     expect((await bodyOf(blocked)).code).toBe('RATE_LIMITED');
     expect(Number(blocked.headers.get('retry-after'))).toBeGreaterThan(0);

@@ -2,9 +2,10 @@ import { z } from 'zod';
 import { audit } from '@/server/audit';
 import { assertSameOrigin } from '@/server/auth/csrf';
 import { hashPassword, passwordPolicy, verifyPassword } from '@/server/auth/password';
-import { authErrorResponse, requireAdmin } from '@/server/auth/require-admin';
+import { requireAdmin } from '@/server/auth/require-admin';
 import { prisma } from '@/server/db';
 import { AppError, ValidationError } from '@/server/errors';
+import { fail, json } from '@/server/http';
 
 const bodySchema = z.object({
   currentPassword: z.string().min(1).max(1024),
@@ -47,8 +48,8 @@ export async function POST(req: Request) {
       await audit('auth.password_changed', { actorId: admin.id }, tx);
     });
 
-    return Response.json({ ok: true });
+    return json({ ok: true });
   } catch (error) {
-    return authErrorResponse(error);
+    return fail(error);
   }
 }

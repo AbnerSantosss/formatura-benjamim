@@ -8,7 +8,7 @@ export default defineConfig({
     alias: { 'server-only': path.resolve('tests/stubs/server-only.ts'), '@': path.resolve('src') },
   },
   test: {
-    include: ['tests/integration/**/*.test.ts'],
+    include: ['tests/integration/**/*.test.ts', 'tests/security/**/*.int.test.ts'],
     environment: 'node',
     // Roda uma vez por execução: carrega .env.test e aplica as migrações.
     globalSetup: ['tests/integration/global-setup.ts'],

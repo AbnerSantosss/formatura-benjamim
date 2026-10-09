@@ -33,18 +33,3 @@ export async function requireAdmin(opts: RequireAdminOptions = {}): Promise<Auth
 export async function getAdminOrNull(): Promise<AuthContext | null> {
   return getSession();
 }
-
-/**
- * Converte um erro em resposta JSON `{ code, message }` para as rotas de `/api/admin/auth/**`.
- * Erro que não é `AppError` vira 500 genérico, sem detalhe, e sem ir para o log com dados da requisição.
- */
-export function authErrorResponse(error: unknown): Response {
-  if (error instanceof AppError) {
-    return Response.json({ code: error.code, message: error.message }, { status: error.status });
-  }
-  console.error('[auth] erro inesperado:', error instanceof Error ? error.name : 'desconhecido');
-  return Response.json(
-    { code: 'INTERNAL_ERROR', message: 'Não foi possível concluir agora. Tente novamente.' },
-    { status: 500 },
-  );
-}

@@ -2,6 +2,11 @@
 import { z } from 'zod';
 import { TOTAL_NUMBERS } from './orders';
 
+// No navegador o Zod não pode gerar código: para decidir se usa o validador compilado ele testa
+// `new Function`, que a CSP de produção (sem 'unsafe-eval') bloqueia e registra como violação.
+// Com `jitless` o teste nem acontece e a validação segue pelo caminho interpretado, com o mesmo resultado.
+if (typeof window !== 'undefined') z.config({ jitless: true });
+
 const onlyDigits = (value: string) => value.replace(/\D/g, '');
 
 /** Dígitos verificadores do CPF pelo módulo 11; rejeita sequências de dígitos iguais. */

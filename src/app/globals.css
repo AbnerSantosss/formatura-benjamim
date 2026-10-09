@@ -2404,24 +2404,6 @@ input:focus-visible {
   font-size: 12px;
   white-space: nowrap;
 }
-.admin-demo-notice {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: #fffbef;
-  border: 1px solid #f1e3b9;
-  border-radius: 10px;
-  padding: 13px 16px;
-  margin-bottom: 23px;
-}
-.admin-demo-notice .demo-chip {
-  white-space: nowrap;
-  font-size: 9px;
-}
-.admin-demo-notice p {
-  font-size: 11px;
-  color: #6d6346;
-}
 .admin-notice {
   padding: 12px 15px;
   margin: 15px 0;
@@ -2686,9 +2668,6 @@ input:focus-visible {
 .integration-panel .status-pill {
   margin-top: 14px;
 }
-.reset-confirm > button {
-  margin-right: 6px;
-}
 @media (max-width: 1100px) {
   .admin-sidebar {
     width: 205px;
@@ -2800,14 +2779,6 @@ input:focus-visible {
   }
   .admin-title .button {
     margin-top: 16px;
-  }
-  .admin-demo-notice {
-    display: block;
-    padding: 13px;
-  }
-  .admin-demo-notice p {
-    font-size: 11px;
-    margin-top: 9px;
   }
   .metric-grid {
     gap: 10px;
