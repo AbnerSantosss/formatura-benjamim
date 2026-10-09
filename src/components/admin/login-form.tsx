@@ -94,9 +94,9 @@ export default function LoginForm({ next }: { next?: string }) {
   return (
     <LoginFrame>
       <form className="login-card" onSubmit={login}>
-        <span className="demo-chip">BACKOFFICE · DEMONSTRAÇÃO</span>
+        <span className="demo-chip">BACKOFFICE</span>
         <h2>Que bom ter você aqui.</h2>
-        <p>Entre para conhecer o painel da campanha.</p>
+        <p>Entre para acessar o painel da campanha.</p>
         <label>
           E-mail
           <input name="email" type="email" autoComplete="email" placeholder="Seu e-mail" required />

@@ -36,3 +36,15 @@ Manual: login → métricas carregam → filtrar pedidos → estornar um pedido 
 ## Não fazer
 - Não alterar CSS das páginas públicas. Novas regras só para modal e formulários do painel, no arquivo CSS já usado pelo backoffice.
 - Não usar `window.confirm`/`alert`/`prompt`.
+
+## Desvios registrados
+- Arquivo extra `src/components/admin/use-admin-data.ts` (hook de carregamento com recarga e intervalo), fora da lista, para atender às regras de react-hooks do lint.
+- `src/lib/demo-store.ts` e `src/components/product-catalog.tsx` removidos: ficaram sem uso. `demo-model.ts` continua (checkout e number-picker ainda importam; limpeza na T22).
+- `.admin-login` e `.admin-shell` passaram de `min-height: calc(100vh - 32px)` para `100vh` (o banner de 32 px saiu na T13). Única regra existente alterada; o resto é bloco novo no fim de `globals.css`, só com classes `admin-*` e `confirm-dialog*`.
+- O bloco `admin-demo-notice` saiu inteiro do JSX; as regras `.admin-demo-notice` e `.reset-confirm` ficaram órfãs em `globals.css` (limpeza na T22).
+- Textos do painel trocados: "BACKOFFICE · DEMONSTRAÇÃO" → "PAINEL DA CAMPANHA"/"BACKOFFICE"; "Nova simulação" → "Nova contribuição"; "Protótipo frontend" → "Painel da campanha".
+- Acréscimos de interface no painel: coluna "Contribuinte" na tabela de pedidos (nome, e-mail, CPF mascarado), linha de contagens na visão geral (reusa `.catalog-counts` sem alterar `order-flow.css`), item "Usuários" na navegação (no celular a navegação quebra em duas linhas).
+- "Aprovar (demo)" só aparece com `isDemo`, pedido PENDING e gateway DEMO, porque a rota recusa os outros gateways.
+- `npm run lint` fica com 2 avisos (0 erros) de `@next/next/no-location-assign-relative-destination` em `admin-client.ts`: o `window.location.assign` é o que o passo 1 pede.
+- Não exercitados pela interface no teste manual: salvar edição de produto, "Reenviar e-mail", "Reenviar convite", confirmar desativar/reativar, visão do papel ADMIN e os redirecionamentos de 401/403. Ficam para a T21.
+- Aviso de hidratação no console na tela de login (`LoginForm > LoginFrame`, da T17), não investigado aqui: conferir na T22.

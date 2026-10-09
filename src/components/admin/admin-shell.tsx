@@ -40,6 +40,13 @@ export default function AdminShell({ admin, children }: { admin: ShellAdmin; chi
   );
 }
 
+/** Admin logado (nome, e-mail e papel), para as telas esconderem o que o papel não permite. */
+export function useAdmin(): ShellAdmin {
+  return useAdminShell().admin;
+}
+
+export const adminRoleLabels = roleLabels;
+
 /** Botão "Sair" da sidebar. */
 export function AdminLogoutButton() {
   const { loggingOut, logout } = useAdminShell();
