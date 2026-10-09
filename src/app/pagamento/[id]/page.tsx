@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import PaymentFrame from '@/components/payment-frame';
-import { isDemo } from '@/server/env';
 import { DEMO_QR_CODE_BASE64 } from '@/server/gateways/demo';
+import { demoAllowed } from '@/server/gateways/registry';
 import { getOrderPublic } from '@/server/orders.service';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,7 @@ export default async function Page({ params, searchParams }: Props) {
     redirect(`/obrigado/${encodeURIComponent(order.id)}?t=${encodeURIComponent(token)}`);
   }
   // A apresentação de demonstração (QR ilustrativo e botões de simulação) só vale para cobrança
-  // criada no gateway demo com o modo demonstração ligado. O servidor recusa a simulação fora disso.
-  const demo = isDemo && order.payment?.qrCodeBase64 === DEMO_QR_CODE_BASE64;
+  // criada no gateway demo com a demonstração liberada. O servidor recusa a simulação fora disso.
+  const demo = order.payment?.qrCodeBase64 === DEMO_QR_CODE_BASE64 && (await demoAllowed());
   return <PaymentFrame order={order} token={token} now={now.getTime()} demo={demo} />;
 }

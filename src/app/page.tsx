@@ -1,5 +1,6 @@
 import ReferenceLanding from '@/components/reference-landing';
 import { prisma } from '@/server/db';
+import { demoModeOn } from '@/server/gateways/registry';
 import { getCampaignSummary } from '@/server/orders.service';
 import './reference.css';
 
@@ -15,8 +16,10 @@ export default async function Home() {
       select: { instagramFather: true, instagramMother: true },
     }),
   ]);
+  const demo = await demoModeOn();
   return (
     <ReferenceLanding
+      demo={demo}
       summary={{
         raisedCents: summary.raisedCents,
         goalCents: summary.goalCents,

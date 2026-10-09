@@ -192,6 +192,12 @@ export default function GatewaysPanel({ fallback, onSaved }: PanelProps) {
           As chaves são guardadas cifradas e nunca voltam a aparecer aqui. O que for salvo no painel vale no
           lugar do que estiver no servidor; novos pedidos passam a usar o gateway em uso em até 10 segundos.
         </p>
+        {data.settings.demoMode && (
+          <p className="admin-notice">
+            O modo demonstração está ligado: nenhum destes gateways é usado até você desligá-lo, no topo desta
+            tela.
+          </p>
+        )}
       </section>
       <div className="settings-grid">
         {data.settings.gateways.map((item) => (

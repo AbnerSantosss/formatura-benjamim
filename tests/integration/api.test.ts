@@ -245,13 +245,14 @@ describe('POST /api/pedidos', () => {
     expect(retry.res.status).toBe(200);
   });
 
-  it('gateway não configurado responde 503 e cancela o pedido', async () => {
+  it('gateway não configurado responde 503 sem gravar pedido nem dado pessoal', async () => {
     vi.spyOn(demoGateway, 'isConfigured').mockReturnValue(false);
     const { res, body } = await createOrderViaApi(range(1, 10));
 
     expect(res.status).toBe(503);
     expect(body.code).toBe('GATEWAY_NOT_CONFIGURED');
-    expect((await prisma.order.findFirstOrThrow()).status).toBe('CANCELED');
+    expect(await prisma.order.count()).toBe(0);
+    expect(await prisma.contributor.count()).toBe(0);
   });
 
   it('limita a 10 pedidos por minuto por IP', async () => {

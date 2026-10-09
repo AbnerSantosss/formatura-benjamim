@@ -232,6 +232,42 @@ test('painel acha o pedido aprovado e reenvia o e-mail de confirmação', async 
   await expect(page.getByText(`E-mail de confirmação reenviado para ${CONTRIBUTOR_NAME}.`)).toBeVisible();
 });
 
+test('interruptor do modo demonstração tira e devolve os textos de teste do site', async () => {
+  await adminNav('Configurações').click();
+  const toggle = page.getByRole('switch', { name: 'Modo demonstração' });
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  if (process.env.E2E_SHOTS_DIR) {
+    await page
+      .locator('.demo-mode-panel')
+      .screenshot({ path: `${process.env.E2E_SHOTS_DIR}/switch-off.png` });
+  }
+  const visitor = await context.newPage();
+  await visitor.goto('/contribuir');
+  await expect(visitor.getByText('Sorteio das cestas', { exact: true })).toBeVisible();
+  await expect(visitor.getByText(/demonstração|simulad|teste/i)).toHaveCount(0);
+  await visitor.goto('/');
+  await expect(visitor.getByText('Pagamento seguro via Pix')).toBeVisible();
+  await expect(visitor.getByText(/demonstração/i)).toHaveCount(0);
+  await visitor.goto('/pagamento/indisponivel');
+  await expect(visitor.getByRole('heading', { name: 'O Pix ainda não está funcionando' })).toBeVisible();
+  if (process.env.E2E_SHOTS_DIR) {
+    await visitor.screenshot({ path: `${process.env.E2E_SHOTS_DIR}/indisponivel.png`, fullPage: true });
+  }
+
+  // Religa: o resto do roteiro (e a próxima execução) conta com a demonstração ligada.
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+  if (process.env.E2E_SHOTS_DIR) {
+    await page.locator('.demo-mode-panel').screenshot({ path: `${process.env.E2E_SHOTS_DIR}/switch-on.png` });
+  }
+  await visitor.goto('/contribuir');
+  await expect(visitor.getByText('Sorteio das cestas · teste')).toBeVisible();
+  await visitor.close();
+});
+
 test('proprietário convida, reenvia o convite, desativa e reativa um usuário', async () => {
   await adminNav('Usuários').click();
   await expect(page.getByRole('heading', { level: 1, name: 'Usuários do painel' })).toBeVisible();

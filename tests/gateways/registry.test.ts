@@ -31,6 +31,7 @@ function setEnv(vars: Record<string, string>): void {
 const stored = vi.hoisted(() => ({
   value: {
     active: null as string | null,
+    demoMode: false as boolean | undefined,
     fields: { mercadopago: {}, fastpay: {}, ironpay: {} } as Record<string, Record<string, string>>,
   },
 }));
@@ -50,7 +51,7 @@ const sampleInput = {
 
 beforeEach(() => {
   vi.resetModules();
-  stored.value = { active: null, fields: { mercadopago: {}, fastpay: {}, ironpay: {} } };
+  stored.value = { active: null, demoMode: false, fields: { mercadopago: {}, fastpay: {}, ironpay: {} } };
   vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
@@ -84,6 +85,30 @@ describe('registro de gateways', () => {
       expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }),
     );
     expect((await gatewayHealth()).configured).toBe(false);
+  });
+
+  it('modo demonstração do painel força o demo, mesmo com gateway real configurado', async () => {
+    setEnv({ PAYMENT_GATEWAY: 'mercadopago', MP_ACCESS_TOKEN: 'TEST-token-do-ambiente', DEMO_MODE: 'false' });
+    stored.value.demoMode = true;
+    const { getGateway, gatewayHealth, gatewaySettings, demoModeOn, demoAllowed } = await loadRegistry();
+
+    expect((await getGateway()).id).toBe('demo');
+    expect(await demoModeOn()).toBe(true);
+    expect(await demoAllowed()).toBe(true);
+    expect(await gatewayHealth()).toMatchObject({ active: 'demo', configured: true });
+    // O painel continua mostrando o gateway real escolhido: é o que volta a valer ao desligar.
+    expect(await gatewaySettings()).toMatchObject({ active: 'mercadopago', demoMode: true });
+  });
+
+  it('modo demonstração desligado e nada configurado: GATEWAY_NOT_CONFIGURED', async () => {
+    setEnv({ PAYMENT_GATEWAY: 'mercadopago', DEMO_MODE: 'false' });
+    const { getGateway, demoModeOn, demoAllowed } = await loadRegistry();
+
+    await expect(getGateway()).rejects.toEqual(
+      expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED', status: 503 }),
+    );
+    expect(await demoModeOn()).toBe(false);
+    expect(await demoAllowed()).toBe(false);
   });
 
   it('demo em produção lança: o ambiente nem carrega', async () => {
@@ -262,16 +287,12 @@ describe('gateway demo', () => {
     vi.unstubAllGlobals();
   });
 
-  it('fora de isDemo o adapter recusa tudo', async () => {
+  it('sem demonstração liberada o registro não entrega o adapter demo', async () => {
     setEnv({ PAYMENT_GATEWAY: 'demo', DEMO_MODE: 'false' });
-    const { demoGateway, demoApprove } = await import('@/server/gateways/demo');
+    const { getGateway, getGatewayById } = await loadRegistry();
 
-    expect(demoGateway.isConfigured()).toBe(false);
-    await expect(demoGateway.createPixCharge(sampleInput)).rejects.toMatchObject({
-      code: 'GATEWAY_NOT_CONFIGURED',
-    });
-    expect(() => demoApprove('ord_teste_1')).toThrow(
-      expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }),
-    );
+    // O adapter não consulta nada; quem recusa é o registro (e a rota demo/aprovar).
+    await expect(getGateway()).rejects.toMatchObject({ code: 'GATEWAY_NOT_CONFIGURED' });
+    await expect(getGatewayById('demo')).rejects.toMatchObject({ code: 'GATEWAY_NOT_CONFIGURED' });
   });
 });

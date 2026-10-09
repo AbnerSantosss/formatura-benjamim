@@ -1,0 +1,23 @@
+/* Aviso de Pix indisponível: usa a moldura da tela de pagamento. */
+.payment-viewport .pix-unavailable {
+  text-align: center;
+}
+.payment-viewport .pix-unavailable-art {
+  display: block;
+  width: min(210px, 62%);
+  height: auto;
+  margin: 6px auto 10px;
+}
+.payment-viewport .pix-unavailable-note {
+  margin: 10px 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f5fbff;
+  color: #496482;
+  font-size: 12px;
+  font-weight: 700;
+}
+.payment-viewport .pix-unavailable .button,
+.payment-viewport .pix-unavailable .secondary-button {
+  margin-top: 8px;
+}

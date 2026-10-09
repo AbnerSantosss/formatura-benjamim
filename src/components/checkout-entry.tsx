@@ -21,7 +21,7 @@ function parseNumbers(value: string | null) {
   return [...new Set(numbers)].sort((a, b) => a - b);
 }
 
-export default function CheckoutEntry() {
+export default function CheckoutEntry({ demo }: { demo: boolean }) {
   const params = useSearchParams();
   const mode = params.get('modalidade') === 'avulsa' ? 'extra' : 'numbers';
   const valor = params.get('valor') ?? undefined;
@@ -37,6 +37,7 @@ export default function CheckoutEntry() {
   }
   return (
     <Checkout
+      demo={demo}
       key={`${amount}-${mode}-${numbers.join('.')}`}
       initialAmount={amount}
       initialMode={mode}

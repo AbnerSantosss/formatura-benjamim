@@ -42,7 +42,10 @@ export default function Checkout({
   initialAmount,
   initialMode = 'numbers',
   initialNumbers = [],
+  demo,
 }: {
+  /** Modo demonstração ligado no painel: mantém os textos de teste do protótipo. */
+  demo: boolean;
   initialAmount: number;
   initialMode?: OrderMode;
   initialNumbers?: number[];
@@ -150,6 +153,8 @@ export default function Checkout({
       setSelected((items) => items.filter((number) => !next.has(number)));
       setError(taken.length ? takenMessage(taken) : failure.message);
     } else if (failure?.status === 503 && failure.code === 'GATEWAY_NOT_CONFIGURED') {
+      // Sem meio de pagamento: em vez do QR Code, a pessoa vê o aviso para falar com os pais.
+      router.push('/pagamento/indisponivel');
       setError('Pagamentos em configuração. Tente de novo em instantes.');
       setBlocked(true);
       if (cooldown.current) clearTimeout(cooldown.current);
@@ -215,7 +220,7 @@ export default function Checkout({
           </h2>
           <div className="order-mode-switch" role="group" aria-label="Modalidade do pedido">
             <button type="button" aria-pressed={mode === 'numbers'} onClick={() => chooseMode('numbers')}>
-              Escolher números<small>Sorteio das cestas · teste</small>
+              Escolher números<small>{demo ? 'Sorteio das cestas · teste' : 'Sorteio das cestas'}</small>
             </button>
             <button type="button" aria-pressed={mode === 'extra'} onClick={() => chooseMode('extra')}>
               Colaboração avulsa<small>Valor livre, sem números</small>
@@ -243,6 +248,7 @@ export default function Checkout({
           )}
           {mode === 'numbers' && (
             <NumberPicker
+              demo={demo}
               selected={selected}
               onChange={setSelected}
               allowance={allowance}
@@ -270,7 +276,7 @@ export default function Checkout({
               <h2>
                 <span className="step-number">2</span> Seus dados
               </h2>
-              <p className="field-note">Use somente dados fictícios nesta demonstração.</p>
+              {demo && <p className="field-note">Use somente dados fictícios nesta demonstração.</p>}
               <div className="form-grid">
                 <label>
                   Nome completo
@@ -321,8 +327,11 @@ export default function Checkout({
                 </label>
               </div>
               <p className="data-note">
-                <LockKeyhole size={14} /> Dados pessoais não são enviados nem salvos. Pedido, números, valor,
-                datas e status do teste ficam neste navegador. <Link href="/privacidade">Privacidade</Link>
+                <LockKeyhole size={14} />{' '}
+                {demo
+                  ? 'Dados pessoais não são enviados nem salvos. Pedido, números, valor, datas e status do teste ficam neste navegador.'
+                  : 'Seus dados são usados só para registrar o pedido, gerar o Pix e enviar a confirmação.'}{' '}
+                <Link href="/privacidade">Privacidade</Link>
               </p>
             </section>
             <section className="checkout-section payment-section checkout-reveal">
@@ -332,8 +341,12 @@ export default function Checkout({
               <div className="payment-method">
                 <Landmark size={32} />
                 <div>
-                  <b>Pix · demonstração</b>
-                  <span>Experimente o fluxo, sem movimentar dinheiro.</span>
+                  <b>{demo ? 'Pix · demonstração' : 'Pix'}</b>
+                  <span>
+                    {demo
+                      ? 'Experimente o fluxo, sem movimentar dinheiro.'
+                      : 'Pague na hora, pelo aplicativo do seu banco.'}
+                  </span>
                 </div>
                 <Check size={20} />
               </div>
@@ -343,7 +356,7 @@ export default function Checkout({
                   <b>{mode === 'numbers' ? `${selected.length} números` : 'Valor livre'}</b>
                 </div>
                 <div className="order-total">
-                  <span>Total simulado</span>
+                  <span>{demo ? 'Total simulado' : 'Total'}</span>
                   <strong aria-live="polite">{money(amount)}</strong>
                 </div>
               </div>
@@ -364,7 +377,9 @@ export default function Checkout({
               >
                 <Heart size={19} />{' '}
                 {busy
-                  ? 'Abrindo simulação…'
+                  ? demo
+                    ? 'Abrindo simulação…'
+                    : 'Gerando seu Pix…'
                   : mode === 'numbers' && selected.length !== allowance
                     ? `Escolha mais ${Math.max(0, allowance - selected.length)} números`
                     : mode === 'numbers'
@@ -374,8 +389,11 @@ export default function Checkout({
               <p className="checkout-notice">
                 <Info size={17} />
                 <span>
-                  Nenhum Pix real será gerado. Os números serão reservados no teste e confirmados somente após
-                  a aprovação simulada.
+                  {demo
+                    ? 'Nenhum Pix real será gerado. Os números serão reservados no teste e confirmados somente após a aprovação simulada.'
+                    : mode === 'numbers'
+                      ? 'Seus números ficam reservados por 10 minutos e são confirmados assim que o Pix for aprovado.'
+                      : 'Sua colaboração é confirmada assim que o Pix for aprovado.'}
                 </span>
               </p>
             </section>
@@ -384,7 +402,7 @@ export default function Checkout({
         <p className="terms-note">
           Uma iniciativa da família do Benjamim.
           <br />
-          <Link href="/termos">Conheça os termos da demonstração</Link>.
+          <Link href="/termos">{demo ? 'Conheça os termos da demonstração' : 'Conheça os termos'}</Link>.
         </p>
       </form>
       <div className="checkout-thanks">

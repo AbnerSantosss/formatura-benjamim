@@ -1,6 +1,6 @@
 'use client';
 import { FormEvent, useState } from 'react';
-import { CalendarClock, Clock3, Megaphone, Target } from 'lucide-react';
+import { CalendarClock, Clock3, FlaskConical, Megaphone, Target } from 'lucide-react';
 import {
   centsToInput,
   errorMessage,
@@ -196,6 +196,82 @@ function SettingsForm({ settings, onSaved }: FormProps) {
   );
 }
 
+/** Chave do modo demonstração: um clique salva na hora (não depende do "Salvar configurações"). */
+function DemoModeCard({ settings, gateways, onSaved }: FormProps & { gateways: Gateways }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const on = settings.demoMode;
+  // Há um gateway de verdade pronto para receber?
+  const realReady = on
+    ? Object.entries(gateways.others).some(([id, configured]) => id !== 'demo' && configured)
+    : gateways.active !== 'demo' && gateways.configured;
+
+  async function toggle() {
+    if (pending) return;
+    setPending(true);
+    setError('');
+    try {
+      const saved = await updateSettings({ demoMode: !on });
+      onSaved(saved.settings, saved.gateways);
+    } catch (issue) {
+      setError(errorMessage(issue));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <section className={`admin-panel demo-mode-panel ${on ? 'is-on' : 'is-off'}`}>
+      <div className="demo-mode-head">
+        <span className="panel-icon">
+          <FlaskConical />
+        </span>
+        <h2>Modo demonstração</h2>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={on}
+          aria-label="Modo demonstração"
+          className="admin-switch"
+          onClick={toggle}
+          disabled={pending}
+        >
+          <span aria-hidden="true" />
+        </button>
+        <b className="demo-mode-state">{on ? 'Ligado' : 'Desligado'}</b>
+      </div>
+      <p>
+        {on
+          ? 'O site mostra os avisos de teste e gera um Pix simulado: nenhum dinheiro entra e ninguém é cobrado.'
+          : 'Os avisos de teste saíram do site e cada pedido gera um Pix de verdade pelo gateway em uso.'}
+      </p>
+      {on ? (
+        <p className="admin-notice">
+          {realReady
+            ? 'Já existe um gateway com as chaves cadastradas. Desligue o modo demonstração para começar a receber.'
+            : 'Antes de desligar, cadastre as chaves de um gateway logo abaixo.'}
+        </p>
+      ) : (
+        !realReady && (
+          <p className="form-error" role="alert">
+            Nenhum gateway está configurado: quem tentar pagar verá um aviso pedindo para falar com os pais.
+            Cadastre as chaves logo abaixo.
+          </p>
+        )
+      )}
+      <p className="admin-field-hint">
+        Pedidos feitos durante a demonstração continuam na lista de pedidos como “demo”. Estorne os aprovados
+        de teste antes de divulgar a campanha, para não contarem na meta nem ocuparem números.
+      </p>
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function GatewaysCard({ gateways }: { gateways: Gateways }) {
   const others = Object.entries(gateways.others);
   return (
@@ -289,6 +365,14 @@ export default function SettingsPanel({ onChanged }: { onChanged: () => void }) 
         !error && <p className="admin-loading-inline">Carregando configurações…</p>
       ) : (
         <>
+          <DemoModeCard
+            settings={data.settings}
+            gateways={data.gateways}
+            onSaved={(settings, gateways) => {
+              setData(() => ({ settings, gateways }));
+              onChanged();
+            }}
+          />
           <SettingsForm
             settings={data.settings}
             onSaved={(settings, gateways) => {
@@ -296,7 +380,11 @@ export default function SettingsPanel({ onChanged }: { onChanged: () => void }) 
               onChanged();
             }}
           />
-          <GatewaysPanel fallback={<GatewaysCard gateways={data.gateways} />} onSaved={reload} />
+          <GatewaysPanel
+            key={String(data.settings.demoMode)}
+            fallback={<GatewaysCard gateways={data.gateways} />}
+            onSaved={reload}
+          />
           <div className="settings-grid">
             <ExpirationCard onChanged={onChanged} />
           </div>

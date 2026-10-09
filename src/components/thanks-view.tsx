@@ -20,7 +20,8 @@ const modeLabel = {
   EXTRA: 'Colaboração avulsa',
 } as const;
 
-export function ThanksView({ order }: { order: ThanksOrder }) {
+/** `demo`: pedido aprovado no gateway de demonstração; mantém os textos de teste do protótipo. */
+export function ThanksView({ order, demo }: { order: ThanksOrder; demo: boolean }) {
   const hasNumbers = order.numbers.length > 0;
   return (
     <div className="thanks-content">
@@ -29,7 +30,7 @@ export function ThanksView({ order }: { order: ThanksOrder }) {
       </div>
       <section className="demo-payment-card thanks-card" aria-labelledby="thanks-title">
         <span className="demo-chip">
-          <CheckCircle2 size={14} /> PIX APROVADO NA DEMONSTRAÇÃO
+          <CheckCircle2 size={14} /> {demo ? 'PIX APROVADO NA DEMONSTRAÇÃO' : 'PIX APROVADO'}
         </span>
         <span className="thanks-family-label">COM CARINHO, NOSSA FAMÍLIA</span>
         <h1 id="thanks-title">
@@ -42,10 +43,10 @@ export function ThanksView({ order }: { order: ThanksOrder }) {
           celebrar essa conquista com a gente.
         </p>
         <div className="thanks-receipt">
-          <span>Pedido na demonstração</span>
+          <span>{demo ? 'Pedido na demonstração' : 'Seu pedido'}</span>
           <strong>{formatBRL(order.amountCents)}</strong>
           <span>
-            <CheckCircle2 size={14} /> Aprovação simulada
+            <CheckCircle2 size={14} /> {demo ? 'Aprovação simulada' : 'Pagamento aprovado'}
           </span>
         </div>
         <div className="order-product-detail">
@@ -61,13 +62,17 @@ export function ThanksView({ order }: { order: ThanksOrder }) {
             </details>
           )}
         </div>
-        <p className="thanks-note">Este é um teste. Nenhum dinheiro foi movimentado.</p>
+        <p className="thanks-note">
+          {demo
+            ? 'Este é um teste. Nenhum dinheiro foi movimentado.'
+            : 'Enviamos a confirmação para o seu e-mail.'}
+        </p>
         <Link className="button wide" href="/">
           Voltar à campanha
         </Link>
         <div className="payment-links">
           <Link href="/admin">Ver no backoffice</Link>
-          <Link href="/contribuir">Fazer outra simulação</Link>
+          <Link href="/contribuir">{demo ? 'Fazer outra simulação' : 'Fazer outra contribuição'}</Link>
         </div>
       </section>
     </div>

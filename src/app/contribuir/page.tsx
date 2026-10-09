@@ -3,6 +3,7 @@ import { Header, Footer, Portrait, Progress } from '@/components/shared';
 import { Suspense } from 'react';
 import CheckoutEntry from '@/components/checkout-entry';
 import { prisma } from '@/server/db';
+import { demoModeOn } from '@/server/gateways/registry';
 import { getCampaignSummary } from '@/server/orders.service';
 
 // Total arrecadado e links do rodapé vêm do banco.
@@ -18,6 +19,7 @@ export default async function Contribuir() {
       select: { instagramFather: true, instagramMother: true },
     }),
   ]);
+  const demo = await demoModeOn();
   return (
     <>
       <Header checkout />
@@ -58,7 +60,7 @@ export default async function Contribuir() {
             </div>
           </aside>
           <Suspense fallback={<div className="checkout-card">Carregando sua contribuição…</div>}>
-            <CheckoutEntry />
+            <CheckoutEntry demo={demo} />
           </Suspense>
         </div>
       </main>

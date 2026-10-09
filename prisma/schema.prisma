@@ -55,6 +55,8 @@ model Campaign {
   publicMessage   String    @default("")
   // Gateway escolhido no painel. Nulo = vale a variável PAYMENT_GATEWAY.
   activeGateway   Gateway?
+  // Modo demonstração (chave do painel): Pix simulado e textos de teste nas páginas públicas.
+  demoMode        Boolean   @default(true)
   updatedAt       DateTime  @updatedAt
 }
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Brand } from '@/components/shared';
 import { ThanksView } from '@/components/thanks-view';
+import { DEMO_QR_CODE_BASE64 } from '@/server/gateways/demo';
 import { getOrderPublic } from '@/server/orders.service';
 import '../thanks.css';
 
@@ -48,6 +49,7 @@ export default async function Obrigado({ params, searchParams }: Props) {
       </header>
       <main id="conteudo" className="thanks-stage">
         <ThanksView
+          demo={order.payment?.qrCodeBase64 === DEMO_QR_CODE_BASE64}
           order={{
             id: order.id,
             status: order.status,

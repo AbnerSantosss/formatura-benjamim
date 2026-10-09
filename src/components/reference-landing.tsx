@@ -51,10 +51,12 @@ export type LandingSummary = {
 };
 export type LandingProps = {
   summary: LandingSummary;
+  /** Modo demonstração ligado no painel: mantém os textos de teste do protótipo. */
+  demo: boolean;
   instagramFather: string;
   instagramMother: string;
 };
-export default function ReferenceLanding({ summary }: LandingProps) {
+export default function ReferenceLanding({ summary, demo }: LandingProps) {
   const [amount, setAmount] = useState(campaign.defaultAmount);
   const [menu, setMenu] = useState(false);
   return (
@@ -147,7 +149,7 @@ export default function ReferenceLanding({ summary }: LandingProps) {
               </h2>
               <p>
                 Escolha números para o sorteio das cestas <b>Boticário</b> ou faça uma colaboração avulsa para
-                a formatura do Benjamim. Tudo acontece em modo de demonstração.
+                a formatura do Benjamim.{demo ? ' Tudo acontece em modo de demonstração.' : ''}
               </p>
               <span className="ref-handwritten">
                 <GraduationCap /> É uma forma simples, segura e<br />
@@ -185,9 +187,14 @@ export default function ReferenceLanding({ summary }: LandingProps) {
                 <PixMark />
                 <div>
                   <b>Pedido via Pix</b>
-                  <p>Nesta prévia, você pode testar o pagamento simulado.</p>
+                  <p>
+                    {demo
+                      ? 'Nesta prévia, você pode testar o pagamento simulado.'
+                      : 'Pague na hora, pelo aplicativo do seu banco.'}
+                  </p>
                   <span>
-                    <LockKeyhole size={15} /> Demonstração sem cobrança real
+                    <LockKeyhole size={15} />{' '}
+                    {demo ? 'Demonstração sem cobrança real' : 'Pagamento seguro via Pix'}
                   </span>
                 </div>
               </div>
@@ -246,8 +253,9 @@ export default function ReferenceLanding({ summary }: LandingProps) {
               </article>
             </div>
             <p className="ref-kit-disclaimer">
-              Demonstração do sorteio das cestas masculina e feminina. R$ 5 dão 10 números; são 5.000 números
-              em blocos de 100. Nenhuma cobrança ou apuração real acontece nesta prévia.
+              {demo
+                ? 'Demonstração do sorteio das cestas masculina e feminina. R$ 5 dão 10 números; são 5.000 números em blocos de 100. Nenhuma cobrança ou apuração real acontece nesta prévia.'
+                : 'Sorteio das cestas masculina e feminina. R$ 5 dão 10 números; são 5.000 números em blocos de 100.'}
             </p>
           </section>
           <section className="ref-how" id="sobre">
@@ -275,7 +283,9 @@ export default function ReferenceLanding({ summary }: LandingProps) {
                 {
                   icon: Gift,
                   title: 'Receba a confirmação',
-                  text: 'Após a aprovação de teste, confira seus números no agradecimento.',
+                  text: demo
+                    ? 'Após a aprovação de teste, confira seus números no agradecimento.'
+                    : 'Após a aprovação do Pix, confira seus números no agradecimento.',
                 },
               ].map((item, index) => (
                 <article key={item.title}>
@@ -337,7 +347,7 @@ export default function ReferenceLanding({ summary }: LandingProps) {
         <div className="ref-footer-links">
           <Link href="/privacidade">Privacidade</Link>
           <Link href="/termos">Termos</Link>
-          <Link href="/admin">Backoffice de demonstração</Link>
+          <Link href="/admin">{demo ? 'Backoffice de demonstração' : 'Backoffice'}</Link>
         </div>
       </footer>
     </div>

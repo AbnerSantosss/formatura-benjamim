@@ -31,6 +31,8 @@ export async function seedCatalog(): Promise<void> {
       totalNumbers: 5000,
       numberUnitCents: 50,
       reservationMin: 10,
+      // Os testes partem do comportamento sem demonstração do painel; quem testa a chave a liga.
+      demoMode: false,
     },
   });
   await prisma.product.createMany({

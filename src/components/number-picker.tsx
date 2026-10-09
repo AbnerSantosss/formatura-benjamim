@@ -15,7 +15,9 @@ export default function NumberPicker({
   allowance,
   occupied,
   ready,
+  demo,
 }: {
+  demo: boolean;
   selected: number[];
   onChange: (numbers: number[]) => void;
   allowance: number;
@@ -232,8 +234,9 @@ export default function NumberPicker({
         </details>
       )}
       <small className="number-local-note">
-        Nesta demonstração, a disponibilidade é salva apenas neste navegador. Ao abrir o Pix, a reserva de
-        teste dura 10 minutos.
+        {demo
+          ? 'Nesta demonstração, a disponibilidade é salva apenas neste navegador. Ao abrir o Pix, a reserva de teste dura 10 minutos.'
+          : 'Ao abrir o Pix, seus números ficam reservados por 10 minutos.'}
       </small>
     </div>
   );

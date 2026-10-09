@@ -5,6 +5,7 @@ import { formatNumber, TOTAL_NUMBERS } from '@/domain/orders';
 import { audit } from '@/server/audit';
 import { prisma } from '@/server/db';
 import { AppError, ForbiddenError, NotFoundError, ValidationError } from '@/server/errors';
+import { invalidateStoredGateways } from '@/server/gateways/stored-config';
 import { getCampaignSummary, type CampaignSummary } from '@/server/orders.service';
 
 // Serviço do painel (`/api/admin/**`). Regras deste arquivo:
@@ -520,6 +521,7 @@ export type AdminSettings = {
   reservationMin: number;
   drawAt: Date | null;
   drawPublic: boolean;
+  demoMode: boolean;
   instagramFather: string;
   instagramMother: string;
   publicMessage: string;
@@ -553,6 +555,7 @@ const settingsSchema = z
         .transform((value) => new Date(value)),
     ]),
     drawPublic: z.boolean({ error: 'Valor inválido para exibir o resultado.' }),
+    demoMode: z.boolean({ error: 'Valor inválido para o modo demonstração.' }),
     instagramFather: instagramSchema,
     instagramMother: instagramSchema,
     publicMessage: z.string().trim().max(500, { error: 'A mensagem pública tem no máximo 500 caracteres.' }),
@@ -582,6 +585,8 @@ export async function updateSettings(input: unknown, actorId: string): Promise<A
     await tx.campaign.update({ where: { id: CAMPAIGN_ID }, data });
     await audit('settings.updated', { actorId, meta: { fields } }, tx);
   });
+  // A chave do modo demonstração é lida pelo registro de gateways (com cache).
+  invalidateStoredGateways();
   return getSettings();
 }
 

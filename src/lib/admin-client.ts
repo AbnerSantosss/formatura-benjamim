@@ -56,6 +56,7 @@ export type SettingsChanges = Partial<
     | 'costsCents'
     | 'drawAt'
     | 'drawPublic'
+    | 'demoMode'
     | 'instagramFather'
     | 'instagramMother'
     | 'publicMessage'

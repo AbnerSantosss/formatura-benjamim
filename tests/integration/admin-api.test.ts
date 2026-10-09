@@ -514,6 +514,24 @@ describe('produtos e configurações', () => {
     expect(semData.status).toBe(200);
     expect((await prisma.campaign.findUniqueOrThrow({ where: { id: 'main' } })).drawAt).toBeNull();
   });
+
+  it('liga e desliga o modo demonstração, e o registro de gateways acompanha na hora', async () => {
+    await loggedOwner();
+    const invalido = await patchConfiguracoes(send('PATCH', '/api/admin/configuracoes', { demoMode: 'sim' }));
+    expect(invalido.status).toBe(422);
+
+    const ligado = await patchConfiguracoes(send('PATCH', '/api/admin/configuracoes', { demoMode: true }));
+    expect(ligado.status).toBe(200);
+    expect(((await bodyOf(ligado)).settings as Json).demoMode).toBe(true);
+    expect((await prisma.campaign.findUniqueOrThrow({ where: { id: 'main' } })).demoMode).toBe(true);
+    expect(((await bodyOf(await getGateways())).gateways as Json).demoMode).toBe(true);
+
+    const desligado = await patchConfiguracoes(
+      send('PATCH', '/api/admin/configuracoes', { demoMode: false }),
+    );
+    expect(desligado.status).toBe(200);
+    expect(((await bodyOf(await getGateways())).gateways as Json).demoMode).toBe(false);
+  });
 });
 
 describe('gateways', () => {

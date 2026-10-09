@@ -3,7 +3,7 @@ import AdminShell from '@/components/admin/admin-shell';
 import LoginForm from '@/components/admin/login-form';
 import Backoffice from '@/components/backoffice';
 import { getAdminOrNull } from '@/server/auth/require-admin';
-import { isDemo } from '@/server/env';
+import { demoAllowed } from '@/server/gateways/registry';
 
 export const metadata = { title: 'Backoffice · Formatura do Benjamim' };
 
@@ -25,7 +25,7 @@ export default async function Admin({
   const { name, email, role } = auth.admin;
   return (
     <AdminShell admin={{ name, email, role }}>
-      <Backoffice isDemo={isDemo} />
+      <Backoffice isDemo={await demoAllowed()} />
     </AdminShell>
   );
 }

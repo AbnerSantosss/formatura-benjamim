@@ -39,6 +39,7 @@ Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[de
 - [[decisoes/012-snapshots-visuais-a-partir-do-estado-validado]] — snapshots do Playwright nascem do estado atual, já comparado com a baseline; `revisao/baseline/` segue como referência humana.
 - [[decisoes/013-override-do-deepmerge-ts]] — `overrides` do npm fixa `deepmerge-ts` 8 (dependência do Prisma) para o `npm audit` de produção ficar sem altas.
 - [[decisoes/015-credenciais-de-gateway-no-painel]] — chaves e escolha do gateway pelo backoffice, cifradas no banco; o `.env` vira reserva.
+- [[decisoes/016-modo-demonstracao-no-painel]] — interruptor no backoffice liga e desliga o Pix simulado e os textos de teste; desligado e sem gateway, aviso para falar com os pais.
 - [[decisoes/014-build-sem-banco-e-imagem-de-ferramentas]] — o build do Docker não usa banco (páginas públicas renderizadas a cada visita) e migração, seed e admin rodam pela imagem `tools`.
 
 ## Integrações

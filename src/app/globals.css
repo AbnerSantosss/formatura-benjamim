@@ -3192,3 +3192,73 @@ label.admin-check {
     width: 100%;
   }
 }
+
+/* Modo demonstração no painel: interruptor animado. */
+.demo-mode-panel {
+  border-left: 5px solid #1c9b5e;
+  transition: border-color 0.25s ease;
+}
+.demo-mode-panel.is-on {
+  border-left-color: #ffc928;
+}
+.demo-mode-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.demo-mode-head h2 {
+  flex: 1;
+  margin: 0;
+}
+.demo-mode-head .panel-icon {
+  margin: 0;
+}
+.demo-mode-state {
+  min-width: 78px;
+  font-size: 13px;
+  color: #062e66;
+}
+.admin-switch {
+  position: relative;
+  flex: none;
+  width: 60px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #b8c7d8;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+.admin-switch > span {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(6, 46, 102, 0.3);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.admin-switch[aria-checked='true'] {
+  background: #ffc928;
+}
+.admin-switch[aria-checked='true'] > span {
+  transform: translateX(26px);
+}
+.admin-switch:active:not(:disabled) > span {
+  width: 31px;
+}
+.admin-switch[aria-checked='true']:active:not(:disabled) > span {
+  transform: translateX(21px);
+}
+.admin-switch:focus-visible {
+  outline: 3px solid #0b55ad;
+  outline-offset: 3px;
+}
+.admin-switch:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}

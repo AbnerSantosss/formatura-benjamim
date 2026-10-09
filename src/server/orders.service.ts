@@ -22,7 +22,8 @@ const ACTIVE_NUMBER_INDEX = 'OrderNumber_number_active_unique';
 
 type Tx = Prisma.TransactionClient;
 
-export type OrderContext = { now: Date; ip?: string };
+/** `gateway`: o gateway ativo no momento do pedido; sem ele vale PAYMENT_GATEWAY. */
+export type OrderContext = { now: Date; ip?: string; gateway?: Gateway };
 
 /** Contribuinte sem CPF (nem em claro, nem cifrado). */
 export type SafeContributor = { id: string; name: string; email: string; phone: string; cpfLast4: string };
@@ -205,7 +206,7 @@ export async function createOrder(input: NewOrderInput, ctx: OrderContext): Prom
   });
   const reservationMin = campaign?.reservationMin ?? RESERVATION_MINUTES;
   const expiresAt = new Date(now.getTime() + reservationMin * 60_000);
-  const gateway = env.PAYMENT_GATEWAY.toUpperCase() as Gateway;
+  const gateway = ctx.gateway ?? (env.PAYMENT_GATEWAY.toUpperCase() as Gateway);
   const cpfCipher = encryptCpf(data.contributor.cpf);
   const cpfLast4 = data.contributor.cpf.slice(-4);
 

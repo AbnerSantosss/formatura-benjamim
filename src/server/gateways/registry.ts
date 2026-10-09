@@ -13,7 +13,9 @@ import { GATEWAY_IDS, type GatewayId, type PaymentGateway } from './types';
 // - o gateway ativo é o escolhido no painel; sem escolha, vale PAYMENT_GATEWAY;
 // - cada credencial vem do painel (banco, cifrada); se o campo não foi salvo lá, vale a variável de ambiente;
 // - gateway ativo sem credenciais = erro 503 (GATEWAY_NOT_CONFIGURED);
-// - o `demo` só existe com DEMO_MODE=true fora de produção; NUNCA há queda automática para ele.
+// - com o modo demonstração ligado no painel (`Campaign.demoMode`, ADR 016) o gateway ativo é o `demo`,
+//   em qualquer ambiente; é uma escolha explícita do dono, nunca uma queda automática;
+// - fora disso o `demo` só existe com DEMO_MODE=true fora de produção.
 
 function isGatewayId(id: string): id is GatewayId {
   return (GATEWAY_IDS as readonly string[]).includes(id);
@@ -70,18 +72,32 @@ function resolve(id: string, stored: StoredGateways): PaymentGateway {
   const normalized = id.toLowerCase();
   if (!isGatewayId(normalized)) throw new GatewayNotConfiguredError();
   if (normalized === 'demo') {
-    if (!isDemo) throw new GatewayNotConfiguredError();
+    if (!demoAllowedWith(stored)) throw new GatewayNotConfiguredError();
     return demoGateway;
   }
   return build(normalized, stored);
 }
 
-const activeId = (stored: StoredGateways): GatewayId => stored.active ?? env.PAYMENT_GATEWAY;
+/** O gateway `demo` pode ser usado: chave do painel ligada ou DEMO_MODE=true fora de produção. */
+const demoAllowedWith = (stored: StoredGateways): boolean => stored.demoMode === true || isDemo;
+
+const activeId = (stored: StoredGateways): GatewayId =>
+  stored.demoMode === true ? 'demo' : (stored.active ?? env.PAYMENT_GATEWAY);
+
+/** Chave "modo demonstração" do painel: textos de teste nas páginas públicas e Pix simulado. */
+export async function demoModeOn(): Promise<boolean> {
+  return (await loadStoredGateways()).demoMode === true;
+}
+
+/** Simulações (aprovar pedido demo, tela de Pix ilustrativo) estão liberadas neste momento? */
+export async function demoAllowed(): Promise<boolean> {
+  return demoAllowedWith(await loadStoredGateways());
+}
 
 /**
  * Adapter pelo id, para as rotas de webhook e de estorno (o pedido guarda o gateway em que foi criado,
  * que pode não ser mais o ativo). Não exige `isConfigured()`: sem chaves o próprio adapter recusa.
- * O `demo` fora de `isDemo` e ids desconhecidos lançam `GatewayNotConfiguredError`.
+ * O `demo` sem demonstração liberada e ids desconhecidos lançam `GatewayNotConfiguredError`.
  */
 export async function getGatewayById(id: string): Promise<PaymentGateway> {
   return resolve(id, await loadStoredGateways());
@@ -105,7 +121,8 @@ export type GatewayHealth = {
 export async function gatewayHealth(): Promise<GatewayHealth> {
   const stored = await loadStoredGateways();
   const active = activeId(stored);
-  const configuredOf = (id: GatewayId) => (id === 'demo' ? isDemo : build(id, stored).isConfigured());
+  const configuredOf = (id: GatewayId) =>
+    id === 'demo' ? demoAllowedWith(stored) : build(id, stored).isConfigured();
   const others: Partial<Record<GatewayId, boolean>> = {};
   for (const id of GATEWAY_IDS) {
     if (id !== active) others[id] = configuredOf(id);
@@ -134,13 +151,16 @@ export type GatewaySettings = {
   active: GatewayId;
   /** De onde vem a escolha do gateway ativo. */
   activeSource: 'painel' | 'ambiente';
+  /** Modo demonstração ligado: nenhum destes gateways é usado enquanto estiver assim. */
+  demoMode: boolean;
   gateways: GatewaySettingsItem[];
 };
 
 /** Estado detalhado para a tela de gateways. Valor só de campo não secreto. */
 export async function gatewaySettings(): Promise<GatewaySettings> {
   const stored = await loadStoredGateways();
-  const active = activeId(stored);
+  // O gateway real escolhido, mesmo com a demonstração ligada (é o que volta a valer ao desligar).
+  const active = stored.active ?? env.PAYMENT_GATEWAY;
   const gateways = CONFIGURABLE_GATEWAY_IDS.map((id): GatewaySettingsItem => {
     const fromEnv = envGatewayFields(id);
     const fromPanel = stored.fields[id];
@@ -158,5 +178,10 @@ export async function gatewaySettings(): Promise<GatewaySettings> {
       fields,
     };
   });
-  return { active, activeSource: stored.active ? 'painel' : 'ambiente', gateways };
+  return {
+    active,
+    activeSource: stored.active ? 'painel' : 'ambiente',
+    demoMode: stored.demoMode === true,
+    gateways,
+  };
 }

@@ -16,6 +16,8 @@ export type GatewayFieldValues = Record<string, string>;
 export type StoredGateways = {
   /** Gateway escolhido no painel; `null` = vale PAYMENT_GATEWAY. */
   active: ConfigurableGatewayId | null;
+  /** Modo demonstração ligado no painel (`Campaign.demoMode`): o gateway ativo passa a ser o `demo`. */
+  demoMode?: boolean;
   fields: Record<ConfigurableGatewayId, GatewayFieldValues>;
 };
 
@@ -37,22 +39,32 @@ function cleanFields(id: ConfigurableGatewayId, value: unknown): GatewayFieldVal
   return clean;
 }
 
-let cache: { at: number; value: StoredGateways } | null = null;
+// Em `globalThis`: páginas e rotas de API são empacotadas à parte e não dividem variáveis de módulo.
+// Sem isso, salvar no painel não limparia o cache que as páginas públicas leem.
+const shared = globalThis as typeof globalThis & {
+  __storedGateways?: { at: number; value: StoredGateways } | null;
+};
 
 export function invalidateStoredGateways(): void {
-  cache = null;
+  shared.__storedGateways = null;
 }
 
 export async function loadStoredGateways(now: number = Date.now()): Promise<StoredGateways> {
+  const cache = shared.__storedGateways;
   if (cache && now - cache.at < CACHE_MS) return cache.value;
 
   const [campaign, rows] = await Promise.all([
-    prisma.campaign.findUnique({ where: { id: CAMPAIGN_ID }, select: { activeGateway: true } }),
+    prisma.campaign.findUnique({
+      where: { id: CAMPAIGN_ID },
+      select: { activeGateway: true, demoMode: true },
+    }),
     prisma.gatewayConfig.findMany(),
   ]);
 
   const value: StoredGateways = {
     active: campaign?.activeGateway ? toId(campaign.activeGateway) : null,
+    // Sem campanha (banco vazio) não há demonstração: nada de Pix simulado por omissão.
+    demoMode: campaign?.demoMode === true,
     fields: { mercadopago: {}, fastpay: {}, ironpay: {} },
   };
   for (const row of rows) {
@@ -65,7 +77,7 @@ export async function loadStoredGateways(now: number = Date.now()): Promise<Stor
       console.error(`[gateways] não foi possível ler as credenciais salvas de ${id}.`);
     }
   }
-  cache = { at: now, value };
+  shared.__storedGateways = { at: now, value };
   return value;
 }
 

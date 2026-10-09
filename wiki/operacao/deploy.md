@@ -104,6 +104,7 @@ ADMIN_BOOTSTRAP_PASSWORD=
 ```
 Cuidados com o arquivo:
 - `DEMO_MODE` não aparece. `PAYMENT_GATEWAY=demo` e `DEMO_MODE=true` impedem o app de subir em produção.
+- O Pix simulado em produção é controlado pelo painel (Configurações → Modo demonstração, ligado por padrão), não por variável: ver [[decisoes/016-modo-demonstracao-no-painel]]. Desligue antes de divulgar a campanha.
 - O compose interpreta `$` dentro dos valores. Se algum valor tiver `$`, escreva entre aspas simples.
 - `MP_ACCESS_TOKEN` e `MP_WEBHOOK_SECRET` não são mais obrigatórias para o app subir: podem ficar em branco aqui e ser salvas depois no painel (Configurações → Gateways de pagamento, [[decisoes/015-credenciais-de-gateway-no-painel]]). Enquanto faltarem nos dois lugares, o site abre e o Pix não é gerado.
 

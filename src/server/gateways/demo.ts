@@ -1,5 +1,4 @@
 import 'server-only';
-import { isDemo } from '@/server/env';
 import { GatewayNotConfiguredError } from '@/server/errors';
 import type {
   CreateChargeInput,
@@ -13,7 +12,8 @@ import type {
 } from './types';
 
 // Gateway de demonstração: nenhuma chamada de rede, nenhum dinheiro.
-// Só funciona com DEMO_MODE=true fora de produção (`isDemo`); o registro recusa qualquer outro caso.
+// Quem libera é o registro (`registry.ts`) e a rota `demo/aprovar`: modo demonstração ligado no
+// painel ou DEMO_MODE=true fora de produção. O adapter em si não consulta nada.
 
 /** PNG transparente de 1x1 pixel. */
 export const DEMO_QR_CODE_BASE64 =
@@ -27,10 +27,6 @@ const charges = (globalForDemo.benjamimDemoCharges ??= new Map<string, DemoCharg
 
 const paymentIdOf = (orderId: string) => 'DEMO-PAY-' + orderId;
 
-function assertDemo(): void {
-  if (!isDemo) throw new GatewayNotConfiguredError();
-}
-
 function orderIdOf(ref: ProviderRef): string {
   if (ref.providerOrderId) return ref.providerOrderId;
   if (ref.providerPaymentId?.startsWith('DEMO-PAY-')) return ref.providerPaymentId.slice('DEMO-PAY-'.length);
@@ -38,11 +34,10 @@ function orderIdOf(ref: ProviderRef): string {
 }
 
 /**
- * Marca a cobrança de demonstração como paga. Chamada pela rota `demo/aprovar` (só em `isDemo`).
+ * Marca a cobrança de demonstração como paga. Chamada pela rota `demo/aprovar`, que confere se a demonstração está liberada.
  * `amountCents` só é necessário quando a cobrança não está mais em memória (servidor reiniciado).
  */
 export function demoApprove(orderId: string, amountCents?: number): void {
-  assertDemo();
   const current = charges.get(orderId);
   charges.set(orderId, { amountCents: amountCents ?? current?.amountCents ?? 0, status: 'approved' });
 }
@@ -55,10 +50,9 @@ export function demoReset(): void {
 export const demoGateway: PaymentGateway = {
   id: 'demo',
 
-  isConfigured: () => isDemo,
+  isConfigured: () => true,
 
   async createPixCharge(input: CreateChargeInput): Promise<PixCharge> {
-    assertDemo();
     const { order } = input;
     // Repetir a criação não desfaz uma aprovação já simulada.
     if (!charges.has(order.id)) charges.set(order.id, { amountCents: order.amountCents, status: 'pending' });
@@ -73,7 +67,6 @@ export const demoGateway: PaymentGateway = {
   },
 
   async fetchStatus(ref: ProviderRef): Promise<ProviderStatus> {
-    assertDemo();
     const orderId = orderIdOf(ref);
     const charge = charges.get(orderId);
     return {
@@ -90,7 +83,6 @@ export const demoGateway: PaymentGateway = {
   },
 
   async refund(ref: ProviderRef): Promise<RefundResult> {
-    assertDemo();
     const orderId = orderIdOf(ref);
     const charge = charges.get(orderId);
     if (charge) charges.set(orderId, { ...charge, status: 'refunded' });

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { prisma } from '@/server/db';
-import { isDemo } from '@/server/env';
 import { AppError, NotFoundError } from '@/server/errors';
 import { demoApprove } from '@/server/gateways/demo';
+import { demoAllowed } from '@/server/gateways/registry';
 import { fail, json, readJson } from '@/server/http';
 import { applyProviderStatus } from '@/server/orders.service';
 import { sendOrderConfirmedEmail } from '@/server/payment-sync';
@@ -11,10 +11,10 @@ export const dynamic = 'force-dynamic';
 
 const bodySchema = z.object({ orderId: z.string().trim().min(1).max(64) });
 
-// Simula a aprovação de um pedido do gateway de demonstração. Fora de `isDemo` a rota não existe (404).
+// Simula a aprovação de um pedido do gateway de demonstração. Sem a demonstração liberada a rota não existe (404).
 export async function POST(req: Request) {
   try {
-    if (!isDemo) throw new NotFoundError();
+    if (!(await demoAllowed())) throw new NotFoundError();
 
     const { orderId } = bodySchema.parse(await readJson(req));
     const order = await prisma.order.findUnique({

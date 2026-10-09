@@ -1,10 +1,10 @@
 import { Prisma } from '@prisma/client';
-import type { Payment } from '@prisma/client';
+import type { Gateway, Payment } from '@prisma/client';
 import { newOrderSchema } from '@/domain/validation';
 import { prisma } from '@/server/db';
 import { AppError } from '@/server/errors';
 import { getGateway } from '@/server/gateways/registry';
-import type { PixCharge } from '@/server/gateways/types';
+import type { PaymentGateway, PixCharge } from '@/server/gateways/types';
 import { fail, getClientIp, json, logError, readJson, tooManyRequests } from '@/server/http';
 import { attachPayment, cancelOrder, createOrder, type CreatedOrder } from '@/server/orders.service';
 import { RATE_LIMITS, rateLimit } from '@/server/rate-limit';
@@ -12,9 +12,8 @@ import { RATE_LIMITS, rateLimit } from '@/server/rate-limit';
 export const dynamic = 'force-dynamic';
 
 /** Cria a cobrança Pix do pedido no gateway ativo. Erro que não é `AppError` vira 502. */
-async function createCharge(created: CreatedOrder, cpf: string): Promise<PixCharge> {
+async function createCharge(gateway: PaymentGateway, created: CreatedOrder, cpf: string): Promise<PixCharge> {
   const { order, product, contributor } = created;
-  const gateway = await getGateway();
   try {
     return await gateway.createPixCharge({
       order: { id: order.id, amountCents: order.amountCents, expiresAt: order.expiresAt },
@@ -50,8 +49,10 @@ export async function POST(req: Request) {
 
     // Só os campos do schema passam: `status`, `approved` e afins enviados pelo cliente são descartados.
     const input = newOrderSchema.parse(await readJson(req));
+    // Sem meio de pagamento pronto a resposta é 503 antes de gravar pedido, reserva ou dado pessoal.
+    const gateway = await getGateway();
     const now = new Date();
-    const created = await createOrder(input, { now, ip });
+    const created = await createOrder(input, { now, ip, gateway: gateway.id.toUpperCase() as Gateway });
     const { order } = created;
 
     let payment = created.payment;
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       }
       try {
         // O CPF em claro só existe aqui, vindo do corpo validado, e vai direto para o gateway.
-        const charge = await createCharge(created, input.contributor.cpf);
+        const charge = await createCharge(gateway, created, input.contributor.cpf);
         payment = await savePayment(order.id, charge);
       } catch (error) {
         try {
