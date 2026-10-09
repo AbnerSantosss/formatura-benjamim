@@ -6,7 +6,7 @@ tags: [fastpay, pix, gateway, pendente]
 
 # Integração: FastPay (pré-configurada)
 
-**Status:** adapter esqueleto, sem chaves. Fica inativo até `PAYMENT_GATEWAY=fastpay` e credenciais presentes.
+**Status:** adapter esqueleto. O painel (Configurações → Gateways de pagamento) já tem o cartão do FastPay com os três campos e guarda as chaves cifradas, mas recusa ativar enquanto os `TODO` abaixo não forem preenchidos ([[decisoes/015-credenciais-de-gateway-no-painel]]).
 
 ## Variáveis (`.env`)
 | Variável | Uso |
@@ -27,6 +27,6 @@ tags: [fastpay, pix, gateway, pendente]
 1. Obter conta e chaves no FastPay; ler a documentação de Pix e webhooks.
 2. Preencher os `TODO(fastpay)` com os endpoints e campos reais (tarefa curta, modelo `opus`: envolve dinheiro e webhook).
 3. Rodar `npm run test:integration -- gateways/fastpay` com `FASTPAY_*` de sandbox.
-4. Trocar `PAYMENT_GATEWAY=fastpay` e reiniciar o container.
+4. Marcar `implemented: true` em `src/domain/gateway-fields.ts` e, no painel, clicar em "Usar este gateway" (ou trocar `PAYMENT_GATEWAY=fastpay` e reiniciar o container).
 
 Relacionado: [[decisoes/003-multi-gateway]].

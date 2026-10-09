@@ -1,5 +1,4 @@
 import 'server-only';
-import { env } from '@/server/env';
 import { GatewayNotImplementedError } from '@/server/errors';
 import type {
   CreateChargeInput,
@@ -60,9 +59,3 @@ export function createIronPayGateway(config: IronPayConfig): PaymentGateway {
     },
   };
 }
-
-export const ironpayGateway = createIronPayGateway({
-  apiUrl: env.IRONPAY_API_URL,
-  apiKey: env.IRONPAY_API_KEY,
-  webhookSecret: env.IRONPAY_WEBHOOK_SECRET,
-});

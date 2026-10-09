@@ -3070,6 +3070,11 @@ label.admin-check {
 .admin-kv dd {
   font-weight: 800;
   text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.settings-grid > * {
+  min-width: 0;
 }
 .confirm-dialog-backdrop {
   position: fixed;

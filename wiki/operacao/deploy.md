@@ -105,7 +105,7 @@ ADMIN_BOOTSTRAP_PASSWORD=
 Cuidados com o arquivo:
 - `DEMO_MODE` não aparece. `PAYMENT_GATEWAY=demo` e `DEMO_MODE=true` impedem o app de subir em produção.
 - O compose interpreta `$` dentro dos valores. Se algum valor tiver `$`, escreva entre aspas simples.
-- `MP_WEBHOOK_SECRET` é obrigatória para o app subir. Como a assinatura só existe depois de cadastrar o webhook, cadastre o webhook (passo 4) antes do passo 2, ou suba com um valor provisório aleatório (`openssl rand -hex 32`) e troque em seguida. Com valor provisório nenhum pagamento é confirmado por webhook.
+- `MP_ACCESS_TOKEN` e `MP_WEBHOOK_SECRET` não são mais obrigatórias para o app subir: podem ficar em branco aqui e ser salvas depois no painel (Configurações → Gateways de pagamento, [[decisoes/015-credenciais-de-gateway-no-painel]]). Enquanto faltarem nos dois lugares, o site abre e o Pix não é gerado.
 
 ### 2. Construir, preparar o banco e subir
 ```bash
@@ -242,4 +242,5 @@ O arquivo local `.env.portainer` (ignorado pelo git) guarda uma cópia do que fo
 - `POSTGRES_PASSWORD` não muda depois do primeiro deploy (o volume guarda a antiga).
 - Depois do primeiro login do administrador, apague `ADMIN_BOOTSTRAP_PASSWORD` das variáveis da stack.
 - Webhook do Mercado Pago: `https://benjamim.proxserverabner.site/api/webhooks/mercadopago`.
+- Chaves do gateway: entram pelo painel (Configurações → Gateways de pagamento), só pelo proprietário. `MP_*`, `FASTPAY_*` e `IRONPAY_*` na stack são opcionais; o que for salvo no painel vale no lugar delas.
 - Expiração de reservas e backup (seção "Tarefas agendadas" do Caminho A) ainda precisam de um agendador no servidor.

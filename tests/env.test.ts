@@ -123,13 +123,14 @@ describe('parseEnv', () => {
     expect(() => parseEnv(raw(semSmtp))).toThrow(/SMTP_HOST: /);
   });
 
-  it('mercadopago sem credenciais: erro em produção, só aviso em dev', () => {
+  it('mercadopago sem credenciais no ambiente: só aviso, inclusive em produção (podem vir do painel)', () => {
     const { MP_ACCESS_TOKEN: _t, MP_WEBHOOK_SECRET: _w, ...prodSemMp } = prodValido;
     void _t;
     void _w;
-    expect(() => parseEnv(raw(prodSemMp))).toThrow(/MP_ACCESS_TOKEN: [\s\S]*MP_WEBHOOK_SECRET: /);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(parseEnv(raw(prodSemMp)).PAYMENT_GATEWAY).toBe('mercadopago');
+    expect(warn).toHaveBeenCalled();
 
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
     const env = parseEnv(raw({ ...devMinimo, PAYMENT_GATEWAY: 'mercadopago' }));
     expect(env.PAYMENT_GATEWAY).toBe('mercadopago');
   });

@@ -138,17 +138,8 @@ const envSchema = baseSchema
       }
     }
 
-    if (isProduction && data.PAYMENT_GATEWAY === 'mercadopago') {
-      for (const key of ['MP_ACCESS_TOKEN', 'MP_WEBHOOK_SECRET'] as const) {
-        if (data[key] === undefined) {
-          ctx.addIssue({
-            code: 'custom',
-            path: [key],
-            message: 'é obrigatória em produção quando PAYMENT_GATEWAY=mercadopago',
-          });
-        }
-      }
-    }
+    // As credenciais do gateway não são exigidas aqui: podem vir do painel (ADR 015). Sem elas em
+    // nenhum dos dois lugares, criar pedido responde 503 (GATEWAY_NOT_CONFIGURED).
 
     if (isProduction && data.SMTP_HOST === undefined) {
       ctx.addIssue({
@@ -192,7 +183,7 @@ export function parseEnv(raw: NodeJS.ProcessEnv): Env {
 
   const parsed = result.data;
 
-  // Avisos (só chegam aqui em development/test; em produção os casos abaixo são erro).
+  // Avisos. Os de AUTH_SECRET/CPF_ENCRYPTION_KEY só chegam aqui em development/test (em produção são erro).
   for (const key of ['AUTH_SECRET', 'CPF_ENCRYPTION_KEY'] as const) {
     if (cleaned[key] === undefined) {
       warnOnce(`${key} ausente: usando valor fixo de desenvolvimento. Nunca use em produção.`);
@@ -202,7 +193,9 @@ export function parseEnv(raw: NodeJS.ProcessEnv): Env {
   if (parsed.PAYMENT_GATEWAY === 'mercadopago') {
     for (const key of ['MP_ACCESS_TOKEN', 'MP_WEBHOOK_SECRET'] as const) {
       if (parsed[key] === undefined) {
-        warnOnce(`${key} ausente com PAYMENT_GATEWAY=mercadopago: o gateway responderá "não configurado".`);
+        warnOnce(
+          `${key} ausente com PAYMENT_GATEWAY=mercadopago: sem a chave salva no painel, o gateway responderá "não configurado".`,
+        );
       }
     }
   }

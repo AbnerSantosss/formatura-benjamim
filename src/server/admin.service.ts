@@ -563,8 +563,9 @@ export async function getSettings(): Promise<AdminSettings> {
   const campaign = await prisma.campaign.findUnique({ where: { id: CAMPAIGN_ID } });
   if (!campaign) throw new NotFoundError('Campanha não configurada.');
   // Sem o `id`: o resto da linha é exatamente o que o painel mostra.
-  const { id, ...settings } = campaign;
+  const { id, activeGateway, ...settings } = campaign;
   void id;
+  void activeGateway;
   return settings;
 }
 

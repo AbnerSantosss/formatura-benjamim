@@ -53,7 +53,18 @@ model Campaign {
   instagramFather String    @default("")
   instagramMother String    @default("")
   publicMessage   String    @default("")
+  // Gateway escolhido no painel. Nulo = vale a variável PAYMENT_GATEWAY.
+  activeGateway   Gateway?
   updatedAt       DateTime  @updatedAt
+}
+
+// Credenciais de gateway salvas pelo painel. `secretsEnc` é um JSON cifrado (AES-256-GCM,
+// src/server/crypto.ts); nenhum valor fica em claro no banco.
+model GatewayConfig {
+  gateway     Gateway  @id
+  secretsEnc  String
+  updatedById String?
+  updatedAt   DateTime @updatedAt
 }
 
 model Product {

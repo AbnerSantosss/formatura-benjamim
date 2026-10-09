@@ -27,6 +27,18 @@ function setEnv(vars: Record<string, string>): void {
   for (const [key, value] of Object.entries(vars)) vi.stubEnv(key, value);
 }
 
+// O que o painel salvou no banco. Cada teste parte de "nada salvo" (ver beforeEach).
+const stored = vi.hoisted(() => ({
+  value: {
+    active: null as string | null,
+    fields: { mercadopago: {}, fastpay: {}, ironpay: {} } as Record<string, Record<string, string>>,
+  },
+}));
+vi.mock('@/server/gateways/stored-config', () => ({
+  loadStoredGateways: async () => stored.value,
+  invalidateStoredGateways: () => {},
+}));
+
 const loadRegistry = () => import('@/server/gateways/registry');
 
 const sampleInput = {
@@ -38,6 +50,7 @@ const sampleInput = {
 
 beforeEach(() => {
   vi.resetModules();
+  stored.value = { active: null, fields: { mercadopago: {}, fastpay: {}, ironpay: {} } };
   vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
@@ -51,9 +64,9 @@ describe('registro de gateways', () => {
     setEnv({ PAYMENT_GATEWAY: 'demo', DEMO_MODE: 'true' });
     const { getGateway, getGatewayById, gatewayHealth } = await loadRegistry();
 
-    expect(getGateway().id).toBe('demo');
-    expect(getGatewayById('DEMO').id).toBe('demo');
-    expect(gatewayHealth()).toEqual({
+    expect((await getGateway()).id).toBe('demo');
+    expect((await getGatewayById('DEMO')).id).toBe('demo');
+    expect(await gatewayHealth()).toEqual({
       active: 'demo',
       configured: true,
       others: { mercadopago: false, fastpay: false, ironpay: false },
@@ -64,11 +77,13 @@ describe('registro de gateways', () => {
     setEnv({ PAYMENT_GATEWAY: 'demo', DEMO_MODE: 'false' });
     const { getGateway, getGatewayById, gatewayHealth } = await loadRegistry();
 
-    expect(() => getGateway()).toThrow(
+    await expect(getGateway()).rejects.toEqual(
       expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED', status: 503 }),
     );
-    expect(() => getGatewayById('demo')).toThrow(expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }));
-    expect(gatewayHealth().configured).toBe(false);
+    await expect(getGatewayById('demo')).rejects.toEqual(
+      expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }),
+    );
+    expect((await gatewayHealth()).configured).toBe(false);
   });
 
   it('demo em produção lança: o ambiente nem carrega', async () => {
@@ -93,21 +108,23 @@ describe('registro de gateways', () => {
     });
     const { getGateway, getGatewayById, gatewayHealth } = await loadRegistry();
 
-    expect(() => getGatewayById('demo')).toThrow(expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }));
+    await expect(getGatewayById('demo')).rejects.toEqual(
+      expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }),
+    );
     // fastpay sem chaves: não configurado, e nunca cai para o demo.
-    expect(() => getGateway()).toThrow(expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }));
-    expect(gatewayHealth().others.demo).toBe(false);
+    await expect(getGateway()).rejects.toEqual(expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }));
+    expect((await gatewayHealth()).others.demo).toBe(false);
   });
 
   it('fastpay sem chaves: isConfigured() é falso e getGateway lança', async () => {
     setEnv({ PAYMENT_GATEWAY: 'fastpay' });
     const { getGateway, getGatewayById, gatewayHealth } = await loadRegistry();
 
-    expect(getGatewayById('fastpay').isConfigured()).toBe(false);
-    expect(() => getGateway()).toThrow(
+    expect((await getGatewayById('fastpay')).isConfigured()).toBe(false);
+    await expect(getGateway()).rejects.toEqual(
       expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED', status: 503 }),
     );
-    expect(gatewayHealth()).toMatchObject({ active: 'fastpay', configured: false });
+    expect(await gatewayHealth()).toMatchObject({ active: 'fastpay', configured: false });
   });
 
   it('fastpay e ironpay com chaves ficam configurados, mas seguem fail-closed', async () => {
@@ -124,13 +141,13 @@ describe('registro de gateways', () => {
     vi.stubGlobal('fetch', fetchMock);
     const { getGateway, getGatewayById, gatewayHealth } = await loadRegistry();
 
-    const health = gatewayHealth();
+    const health = await gatewayHealth();
     expect(health).toMatchObject({ active: 'ironpay', configured: true });
     expect(health.others.fastpay).toBe(true);
     // A saúde só carrega booleanos, nunca o valor de uma chave.
     expect(JSON.stringify(health)).not.toContain('de-teste');
 
-    for (const gateway of [getGateway(), getGatewayById('fastpay')]) {
+    for (const gateway of [await getGateway(), await getGatewayById('fastpay')]) {
       await expect(gateway.createPixCharge(sampleInput)).rejects.toMatchObject({
         code: 'GATEWAY_NOT_IMPLEMENTED',
         status: 503,
@@ -149,10 +166,54 @@ describe('registro de gateways', () => {
     vi.unstubAllGlobals();
   });
 
+  it('credencial salva no painel vale no lugar da variável de ambiente, campo a campo', async () => {
+    setEnv({
+      PAYMENT_GATEWAY: 'mercadopago',
+      MP_ACCESS_TOKEN: 'token-do-ambiente-de-teste',
+    });
+    const { getGateway, gatewayHealth, gatewaySettings } = await loadRegistry();
+    // Só o token no ambiente: falta o segredo do webhook.
+    await expect(getGateway()).rejects.toEqual(expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }));
+
+    stored.value.fields.mercadopago = { webhookSecret: 'segredo-do-painel-de-teste' };
+    expect((await getGateway()).id).toBe('mercadopago');
+    expect(await gatewayHealth()).toMatchObject({ active: 'mercadopago', configured: true });
+
+    const settings = await gatewaySettings();
+    const mp = settings.gateways.find((item) => item.id === 'mercadopago');
+    expect(mp).toMatchObject({ configured: true, active: true, implemented: true });
+    expect(mp?.fields).toEqual([
+      { name: 'accessToken', set: true, source: 'ambiente' },
+      { name: 'webhookSecret', set: true, source: 'painel' },
+      { name: 'publicKey', set: false, source: null },
+    ]);
+    // Nenhum segredo sai na leitura do painel.
+    expect(JSON.stringify(settings)).not.toContain('de-teste');
+  });
+
+  it('gateway ativo escolhido no painel vale no lugar de PAYMENT_GATEWAY', async () => {
+    setEnv({ PAYMENT_GATEWAY: 'fastpay' });
+    stored.value.active = 'mercadopago';
+    stored.value.fields.mercadopago = { accessToken: 'token-de-teste', webhookSecret: 'segredo-de-teste' };
+    stored.value.fields.ironpay = { apiUrl: 'https://api.ironpay.example' };
+    const { getGateway, gatewaySettings } = await loadRegistry();
+
+    expect((await getGateway()).id).toBe('mercadopago');
+    const settings = await gatewaySettings();
+    expect(settings).toMatchObject({ active: 'mercadopago', activeSource: 'painel' });
+    // Campo que não é segredo volta com o valor.
+    expect(settings.gateways.find((item) => item.id === 'ironpay')?.fields[0]).toEqual({
+      name: 'apiUrl',
+      set: true,
+      source: 'painel',
+      value: 'https://api.ironpay.example',
+    });
+  });
+
   it('id desconhecido lança GATEWAY_NOT_CONFIGURED', async () => {
     setEnv({ PAYMENT_GATEWAY: 'demo', DEMO_MODE: 'true' });
     const { getGatewayById } = await loadRegistry();
-    expect(() => getGatewayById('paypal')).toThrow(
+    await expect(getGatewayById('paypal')).rejects.toEqual(
       expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED' }),
     );
   });

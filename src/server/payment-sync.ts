@@ -129,7 +129,7 @@ export async function handleWebhook(gatewayId: Exclude<GatewayId, 'demo'>, req: 
   let rawBody: string;
   let verdict;
   try {
-    gateway = getGatewayById(gatewayId);
+    gateway = await getGatewayById(gatewayId);
     rawBody = await readRawBody(req);
     verdict = await gateway.verifyWebhook({ headers: req.headers, url: req.url, rawBody });
   } catch (error) {
@@ -205,7 +205,7 @@ export async function refreshPendingOrder(orderId: string, now: Date): Promise<b
       providerOrderId: payment.providerOrderId ?? undefined,
       providerPaymentId: payment.providerPaymentId ?? undefined,
     };
-    const status = await getGatewayById(payment.gateway).fetchStatus(ref);
+    const status = await (await getGatewayById(payment.gateway)).fetchStatus(ref);
     await applyVerifiedStatus(payment.gateway, status, now, orderId);
     return true;
   } catch (error) {

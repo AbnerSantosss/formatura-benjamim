@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     await requireAdmin();
-    return json({ settings: await getSettings(), gateways: gatewayHealth() });
+    return json({ settings: await getSettings(), gateways: await gatewayHealth() });
   } catch (error) {
     return fail(error);
   }
@@ -21,7 +21,7 @@ export async function PATCH(req: Request) {
     const { admin } = await requireAdmin();
     assertSameOrigin(req);
     const settings = await updateSettings(await readJson(req), admin.id);
-    return json({ settings, gateways: gatewayHealth() });
+    return json({ settings, gateways: await gatewayHealth() });
   } catch (error) {
     return fail(error);
   }

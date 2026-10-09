@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 /** Cria a cobrança Pix do pedido no gateway ativo. Erro que não é `AppError` vira 502. */
 async function createCharge(created: CreatedOrder, cpf: string): Promise<PixCharge> {
   const { order, product, contributor } = created;
-  const gateway = getGateway();
+  const gateway = await getGateway();
   try {
     return await gateway.createPixCharge({
       order: { id: order.id, amountCents: order.amountCents, expiresAt: order.expiresAt },

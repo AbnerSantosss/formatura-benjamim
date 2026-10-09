@@ -9,7 +9,15 @@ vi.hoisted(() => {
   process.env.CPF_ENCRYPTION_KEY = '0123456789abcdef'.repeat(4);
 });
 
-import { decryptCpf, encryptCpf, randomToken, sha256Hex, timingSafeEqualHex } from '@/server/crypto';
+import {
+  decryptCpf,
+  decryptGatewaySecrets,
+  encryptCpf,
+  encryptGatewaySecrets,
+  randomToken,
+  sha256Hex,
+  timingSafeEqualHex,
+} from '@/server/crypto';
 
 const CPF = '52998224725';
 
@@ -68,5 +76,31 @@ describe('tokens e comparação', () => {
     expect(timingSafeEqualHex('', '')).toBe(false);
     expect(timingSafeEqualHex('abc', 'abc')).toBe(false);
     expect(timingSafeEqualHex('zz', 'zz')).toBe(false);
+  });
+});
+
+describe('credenciais de gateway cifradas em repouso', () => {
+  const PLAIN = JSON.stringify({ accessToken: 'token-de-teste', webhookSecret: 'segredo-de-teste' });
+
+  it('cifra e decifra de volta, com IV aleatório', () => {
+    const first = encryptGatewaySecrets(PLAIN);
+    const second = encryptGatewaySecrets(PLAIN);
+    expect(first).not.toContain('token-de-teste');
+    expect(first).not.toBe(second);
+    expect(decryptGatewaySecrets(first)).toBe(PLAIN);
+    expect(decryptGatewaySecrets(second)).toBe(PLAIN);
+  });
+
+  it('texto adulterado ou em formato errado não decifra', () => {
+    const [iv, tag, data] = encryptGatewaySecrets(PLAIN).split('.');
+    const flipped = Buffer.from(data, 'base64');
+    flipped[0] ^= 1;
+    expect(() => decryptGatewaySecrets([iv, tag, flipped.toString('base64')].join('.'))).toThrow();
+    expect(() => decryptGatewaySecrets('nada-cifrado')).toThrow('Credenciais cifradas em formato inválido.');
+  });
+
+  it('usa chave derivada: o texto cifrado de gateway não abre como CPF e vice-versa', () => {
+    expect(() => decryptCpf(encryptGatewaySecrets(PLAIN))).toThrow();
+    expect(() => decryptGatewaySecrets(encryptCpf(CPF))).toThrow();
   });
 });

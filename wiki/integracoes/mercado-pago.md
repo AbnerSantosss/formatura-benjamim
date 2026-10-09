@@ -6,6 +6,8 @@ tags: [mercado-pago, pix, webhook, gateway]
 
 # Integração: Mercado Pago (Pix)
 
+**Onde ficam as chaves:** no painel, em Configurações → Gateways de pagamento (cifradas no banco), ou nas variáveis `MP_*`; o painel vale no lugar do ambiente. Ver [[decisoes/015-credenciais-de-gateway-no-painel]].
+
 > **Regra para o executor:** antes de codar o adapter, abrir a documentação oficial
 > (https://www.mercadopago.com.br/developers/pt/docs) e confirmar os campos abaixo.
 > Se algo mudou, atualizar esta página antes de escrever código. Nunca inventar campo.

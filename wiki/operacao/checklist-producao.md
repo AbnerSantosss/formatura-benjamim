@@ -32,7 +32,7 @@ Feito em Docker local, com `.env` fictício e sem domínio. Não substitui os it
 ## Mercado Pago
 - [ ] Aplicação criada; credenciais de **produção** no `.env`.
 - [ ] Chave Pix ativa na conta Mercado Pago.
-- [ ] Webhook cadastrado com a URL pública HTTPS; `MP_WEBHOOK_SECRET` copiado.
+- [ ] Webhook cadastrado com a URL pública HTTPS; assinatura secreta salva no painel (ou em `MP_WEBHOOK_SECRET`).
 - [ ] Teste real de R$ 5: pedido → QR → pagamento → webhook → `APPROVED` → e-mail → número aparece como vendido na grade.
 - [ ] Teste de estorno pelo painel.
 

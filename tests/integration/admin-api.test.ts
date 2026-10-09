@@ -40,6 +40,7 @@ vi.mock('@/server/email/send', () => ({
 import { POST as login } from '@/app/api/admin/auth/login/route';
 import { GET as getConfiguracoes, PATCH as patchConfiguracoes } from '@/app/api/admin/configuracoes/route';
 import { POST as expirar } from '@/app/api/admin/expirar/route';
+import { GET as getGateways, PATCH as patchGateways } from '@/app/api/admin/gateways/route';
 import { GET as exportarCsv } from '@/app/api/admin/exportar.csv/route';
 import { GET as metricas } from '@/app/api/admin/metricas/route';
 import { POST as estornar } from '@/app/api/admin/pedidos/[id]/estornar/route';
@@ -57,6 +58,7 @@ import { deactivateAdmin } from '@/server/admin.service';
 import { env } from '@/server/env';
 import { AppError } from '@/server/errors';
 import { demoReset } from '@/server/gateways/demo';
+import { invalidateStoredGateways } from '@/server/gateways/stored-config';
 import { resetRateLimits } from '@/server/rate-limit';
 import { createAdmin } from '../../scripts/admin-create';
 import { seedCatalog, testPrisma, truncateAll } from './db';
@@ -160,6 +162,7 @@ async function approve(orderId: string) {
 beforeEach(async () => {
   resetRateLimits();
   demoReset();
+  invalidateStoredGateways();
   jar.store.clear();
   mail.sent.length = 0;
   mail.ok = true;
@@ -510,6 +513,131 @@ describe('produtos e configurações', () => {
     const semData = await patchConfiguracoes(send('PATCH', '/api/admin/configuracoes', { drawAt: null }));
     expect(semData.status).toBe(200);
     expect((await prisma.campaign.findUniqueOrThrow({ where: { id: 'main' } })).drawAt).toBeNull();
+  });
+});
+
+describe('gateways', () => {
+  const TOKEN = 'APP_USR-token-de-teste-123';
+  const SEGREDO = 'segredo-de-webhook-de-teste';
+  type Item = { id: string; configured: boolean; active: boolean; fields: Json[] };
+  const itemOf = (body: Json, id: string) =>
+    ((body.gateways as Json).gateways as Item[]).find((item) => item.id === id) as Item;
+
+  it('só o proprietário lê e altera; outra origem é barrada', async () => {
+    const admin = await newAdmin('ADMIN');
+    await loginAs(admin.email);
+    expect((await getGateways()).status).toBe(403);
+    const semPapel = await patchGateways(
+      send('PATCH', '/api/admin/gateways', { gateway: 'mercadopago', fields: { accessToken: TOKEN } }),
+    );
+    expect(semPapel.status).toBe(403);
+
+    await loggedOwner();
+    const outraOrigem = await patchGateways(
+      send(
+        'PATCH',
+        '/api/admin/gateways',
+        { gateway: 'mercadopago', fields: { accessToken: TOKEN } },
+        'https://malicioso.example',
+      ),
+    );
+    expect(outraOrigem.status).toBe(403);
+    expect(await prisma.gatewayConfig.count()).toBe(0);
+  });
+
+  it('salva as credenciais cifradas, nunca devolve segredo e ativa o gateway', async () => {
+    const owner = await loggedOwner();
+
+    const inicio = await bodyOf(await getGateways());
+    expect((inicio.gateways as Json).active).toBe('demo');
+    expect((inicio.gateways as Json).activeSource).toBe('ambiente');
+    expect(itemOf(inicio, 'mercadopago').configured).toBe(false);
+
+    // Sem credenciais não ativa.
+    const cedo = await patchGateways(
+      send('PATCH', '/api/admin/gateways', { gateway: 'mercadopago', activate: true }),
+    );
+    expect(cedo.status).toBe(422);
+
+    const res = await patchGateways(
+      send('PATCH', '/api/admin/gateways', {
+        gateway: 'mercadopago',
+        fields: { accessToken: TOKEN, webhookSecret: SEGREDO, publicKey: 'APP_USR-publica' },
+        activate: true,
+      }),
+    );
+    expect(res.status).toBe(200);
+    const texto = await res.text();
+    expect(texto).not.toContain(TOKEN);
+    expect(texto).not.toContain(SEGREDO);
+    const body = JSON.parse(texto) as Json;
+    expect((body.gateways as Json).active).toBe('mercadopago');
+    expect((body.gateways as Json).activeSource).toBe('painel');
+    expect(itemOf(body, 'mercadopago')).toMatchObject({ configured: true, active: true });
+    expect(itemOf(body, 'mercadopago').fields).toEqual([
+      { name: 'accessToken', set: true, source: 'painel' },
+      { name: 'webhookSecret', set: true, source: 'painel' },
+      { name: 'publicKey', set: true, source: 'painel', value: 'APP_USR-publica' },
+    ]);
+
+    // No banco só texto cifrado; na auditoria só o nome dos campos.
+    const row = await prisma.gatewayConfig.findUniqueOrThrow({ where: { gateway: 'MERCADOPAGO' } });
+    expect(row.secretsEnc).not.toContain(TOKEN);
+    expect(row.secretsEnc).not.toContain(SEGREDO);
+    expect(row.updatedById).toBe(owner.id);
+    const log = await prisma.auditLog.findFirstOrThrow({ where: { action: 'gateway.updated' } });
+    expect(JSON.stringify(log)).not.toContain(TOKEN);
+    expect(JSON.stringify(log)).not.toContain(SEGREDO);
+    expect(log.meta).toMatchObject({ gateway: 'mercadopago', activated: true });
+
+    // A tela de configurações passa a mostrar o gateway do painel.
+    const config = await bodyOf(await getConfiguracoes());
+    expect(config.gateways).toMatchObject({ active: 'mercadopago', configured: true });
+
+    // Apagar um campo obrigatório deixa o gateway sem configuração; o outro continua guardado.
+    const apagar = await patchGateways(
+      send('PATCH', '/api/admin/gateways', { gateway: 'mercadopago', fields: { webhookSecret: null } }),
+    );
+    expect(apagar.status).toBe(200);
+    const depois = itemOf(await bodyOf(apagar), 'mercadopago');
+    expect(depois.configured).toBe(false);
+    expect(depois.fields[0]).toMatchObject({ name: 'accessToken', set: true });
+    expect(depois.fields[1]).toMatchObject({ name: 'webhookSecret', set: false });
+  });
+
+  it('fastpay e ironpay guardam as chaves, mas não podem ser ativados; entradas inválidas dão 422', async () => {
+    await loggedOwner();
+
+    const salvar = await patchGateways(
+      send('PATCH', '/api/admin/gateways', {
+        gateway: 'fastpay',
+        fields: { apiUrl: 'https://api.fastpay.example', apiKey: 'chave-de-teste', webhookSecret: SEGREDO },
+      }),
+    );
+    expect(salvar.status).toBe(200);
+    const fastpay = itemOf(await bodyOf(salvar), 'fastpay');
+    expect(fastpay).toMatchObject({ configured: true, active: false, implemented: false });
+    expect(fastpay.fields[0]).toMatchObject({ name: 'apiUrl', value: 'https://api.fastpay.example' });
+
+    const ativar = await patchGateways(
+      send('PATCH', '/api/admin/gateways', { gateway: 'fastpay', activate: true }),
+    );
+    expect(ativar.status).toBe(422);
+    expect((await prisma.campaign.findUniqueOrThrow({ where: { id: 'main' } })).activeGateway).toBeNull();
+
+    const invalidos = [
+      { gateway: 'paypal', fields: { apiKey: 'x' } },
+      { gateway: 'demo', activate: true },
+      { gateway: 'ironpay' },
+      { gateway: 'ironpay', fields: { apiUrl: 'http://sem-tls.example' } },
+      { gateway: 'ironpay', fields: { campoQueNaoExiste: 'x' } },
+      { gateway: 'ironpay', fields: { apiKey: 'x'.repeat(501) } },
+    ];
+    for (const invalido of invalidos) {
+      const res = await patchGateways(send('PATCH', '/api/admin/gateways', invalido));
+      expect(res.status, JSON.stringify(invalido)).toBe(422);
+    }
+    expect(await prisma.gatewayConfig.count({ where: { gateway: 'IRONPAY' } })).toBe(0);
   });
 });
 

@@ -13,6 +13,7 @@ import {
   type Gateways,
   type Settings,
 } from '@/lib/admin-client';
+import GatewaysPanel from './gateways-panel';
 import { useAdminData } from './use-admin-data';
 
 const gatewayLabels: Record<string, string> = {
@@ -295,8 +296,8 @@ export default function SettingsPanel({ onChanged }: { onChanged: () => void }) 
               onChanged();
             }}
           />
+          <GatewaysPanel fallback={<GatewaysCard gateways={data.gateways} />} onSaved={reload} />
           <div className="settings-grid">
-            <GatewaysCard gateways={data.gateways} />
             <ExpirationCard onChanged={onChanged} />
           </div>
         </>

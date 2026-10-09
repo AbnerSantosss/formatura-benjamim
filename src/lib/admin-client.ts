@@ -11,7 +11,8 @@ import type {
   AdminSettings,
 } from '@/server/admin.service';
 import type { DrawEmails as ServerDrawEmails, DrawState as ServerDrawState } from '@/server/draw.service';
-import type { GatewayHealth } from '@/server/gateways/registry';
+import type { ConfigurableGatewayId } from '@/domain/gateway-fields';
+import type { GatewayHealth, GatewaySettings as ServerGatewaySettings } from '@/server/gateways/registry';
 import { ApiError, NETWORK_ERROR, type ApiErrorDetail } from './api-client';
 
 /** O mesmo tipo do servidor depois de passar pelo JSON: `Date` vira texto ISO. */
@@ -32,6 +33,14 @@ export type AdminUser = Wire<AdminListItem>;
 export type DrawState = Wire<ServerDrawState>;
 export type DrawResult = { state: DrawState; emails: ServerDrawEmails };
 export type Gateways = GatewayHealth;
+export type GatewaySettings = ServerGatewaySettings;
+export type GatewayItem = GatewaySettings['gateways'][number];
+/** Texto define o campo; `null` apaga o que foi salvo no painel. Campo ausente fica como está. */
+export type GatewayChanges = {
+  gateway: ConfigurableGatewayId;
+  fields?: Record<string, string | null>;
+  activate?: true;
+};
 export type AdminRole = AdminUser['role'];
 export type OrderStatus = Order['status'];
 export type OrderMode = Order['mode'];
@@ -195,6 +204,23 @@ export function fetchSettings(signal?: AbortSignal): Promise<SettingsResponse> {
 
 export function updateSettings(changes: SettingsChanges): Promise<SettingsResponse> {
   return request<SettingsResponse>('/api/admin/configuracoes', send('PATCH', changes));
+}
+
+// --- Gateways --------------------------------------------------------------------------------
+
+/** `null` = sem permissão (só o proprietário configura gateways). */
+export async function fetchGatewaySettings(signal?: AbortSignal): Promise<GatewaySettings | null> {
+  try {
+    return (await request<{ gateways: GatewaySettings }>('/api/admin/gateways', { signal })).gateways;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 403) return null;
+    throw error;
+  }
+}
+
+export async function updateGatewaySettings(changes: GatewayChanges): Promise<GatewaySettings> {
+  return (await request<{ gateways: GatewaySettings }>('/api/admin/gateways', send('PATCH', changes)))
+    .gateways;
 }
 
 // --- Usuários do painel ----------------------------------------------------------------------

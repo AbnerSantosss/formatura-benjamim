@@ -1,7 +1,6 @@
 import 'server-only';
 import { createHmac } from 'node:crypto';
 import { timingSafeEqualHex } from '@/server/crypto';
-import { env } from '@/server/env';
 import { AppError, GatewayNotConfiguredError } from '@/server/errors';
 import type {
   CreateChargeInput,
@@ -456,9 +455,3 @@ export function createMercadoPagoGateway(config: MercadoPagoConfig): PaymentGate
     },
   };
 }
-
-export const mercadoPagoGateway = createMercadoPagoGateway({
-  accessToken: env.MP_ACCESS_TOKEN,
-  webhookSecret: env.MP_WEBHOOK_SECRET,
-  flavor: env.MP_API_FLAVOR,
-});

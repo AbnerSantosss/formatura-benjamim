@@ -1,5 +1,4 @@
 import 'server-only';
-import { env } from '@/server/env';
 import { GatewayNotImplementedError } from '@/server/errors';
 import type {
   CreateChargeInput,
@@ -60,9 +59,3 @@ export function createFastPayGateway(config: FastPayConfig): PaymentGateway {
     },
   };
 }
-
-export const fastpayGateway = createFastPayGateway({
-  apiUrl: env.FASTPAY_API_URL,
-  apiKey: env.FASTPAY_API_KEY,
-  webhookSecret: env.FASTPAY_WEBHOOK_SECRET,
-});

@@ -42,7 +42,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     let ok = false;
     try {
-      const refund = await getGatewayById(order.gateway).refund({
+      const refund = await (
+        await getGatewayById(order.gateway)
+      ).refund({
         providerOrderId: payment.providerOrderId ?? undefined,
         providerPaymentId: payment.providerPaymentId ?? undefined,
       });

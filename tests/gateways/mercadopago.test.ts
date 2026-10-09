@@ -566,20 +566,26 @@ describe('mercadopago: estorno', () => {
   });
 });
 
+// O registro consulta o que o painel salvou; aqui nada foi salvo (vale o ambiente).
+vi.mock('@/server/gateways/stored-config', () => ({
+  loadStoredGateways: async () => ({ active: null, fields: { mercadopago: {}, fastpay: {}, ironpay: {} } }),
+  invalidateStoredGateways: () => {},
+}));
+
 describe('mercadopago: registro', () => {
   it('com as chaves no ambiente, o registro entrega o adapter real configurado', async () => {
     setEnv({ MP_ACCESS_TOKEN: TOKEN, MP_WEBHOOK_SECRET: SECRET });
     const { getGateway, gatewayHealth } = await import('@/server/gateways/registry');
 
-    expect(getGateway().id).toBe('mercadopago');
-    const health = gatewayHealth();
+    expect((await getGateway()).id).toBe('mercadopago');
+    const health = await gatewayHealth();
     expect(health).toMatchObject({ active: 'mercadopago', configured: true });
     expect(JSON.stringify(health)).not.toContain(TOKEN);
   });
 
   it('sem as chaves, getGateway lança GATEWAY_NOT_CONFIGURED e não cai para o demo', async () => {
     const { getGateway } = await import('@/server/gateways/registry');
-    expect(() => getGateway()).toThrow(
+    await expect(getGateway()).rejects.toEqual(
       expect.objectContaining({ code: 'GATEWAY_NOT_CONFIGURED', status: 503 }),
     );
   });
