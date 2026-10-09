@@ -66,3 +66,8 @@ npm run typecheck && npm run lint && npm test
 
 ## Desvios registrados
 - 2026-10-09: portas do host trocadas por conflito com outros containers da máquina. Onde este arquivo diz `5432` (host) use `5442`; onde diz `5433` use `5443`. Ver [[decisoes/008-portas-do-postgres-local]].
+- 2026-10-09 (execução da T03): `Product` ganhou `sortOrder Int @default(0)`. O passo 7 e a [[decisoes/002-produto-antes-do-gateway]] pedem `sortOrder`, mas o schema de [[arquitetura/modelo-de-dados-alvo]] não tinha o campo. Só acréscimo; nenhum nome foi alterado.
+- 2026-10-09 (execução da T03): o passo 7 usa nomes que não existem no schema da wiki. Como o passo 3 proíbe renomear, o seed gravou nos campos do schema: `unitPriceCents` → `Product.unitCents`; `instagramFatherUrl`/`instagramMotherUrl` → `Campaign.instagramFather`/`instagramMother` (são `String` não nulos, então ficam `""` quando a variável está vazia, e não `null`). As tarefas T07 e T18 e a ADR 002 ainda dizem `unitPriceCents`: leia `unitCents` até o orquestrador decidir renomear.
+- 2026-10-09 (execução da T03): a campanha foi criada com id `main` (passo 7), embora o `@default` do schema seja `"principal"`. Quem ler a campanha deve usar `id: 'main'`.
+- 2026-10-09 (execução da T03): os dois `CREATE INDEX` de `Order` do passo 4 não foram acrescentados à mão porque o schema já tem os `@@index` equivalentes e a migração os gera com os mesmos nomes. Só o índice único parcial foi acrescentado.
+- 2026-10-09 (orquestrador): meta do seed corrigida de `2500000` para `250000` centavos (R$ 2.500, igual ao protótipo). Ver [[decisoes/009-ajustes-de-consistencia-do-schema]].

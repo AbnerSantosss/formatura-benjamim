@@ -1,0 +1,211 @@
+// Fonte: wiki/arquitetura/modelo-de-dados-alvo.md. Dinheiro em centavos (Int). Datas em UTC.
+// Desvios em relação à wiki estão em wiki/plano/tarefas/T03-prisma-schema.md ("Desvios registrados").
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderMode {
+  NUMBERS
+  EXTRA
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  EXPIRED
+  REFUNDED
+  CANCELED
+}
+
+enum Gateway {
+  MERCADOPAGO
+  FASTPAY
+  IRONPAY
+  DEMO
+}
+
+enum AdminRole {
+  OWNER
+  ADMIN
+}
+
+enum TokenKind {
+  INVITE
+  RESET
+}
+
+model Campaign {
+  id              String    @id @default("principal")
+  title           String    @default("Formatura do Benjamim")
+  goalCents       Int       @default(250000)
+  costsCents      Int       @default(230000)
+  totalNumbers    Int       @default(5000)
+  numberUnitCents Int       @default(50)
+  reservationMin  Int       @default(10)
+  drawAt          DateTime? // data/hora do sorteio definida pelo admin
+  drawPublic      Boolean   @default(false) // mostrar resultado na landing
+  instagramFather String    @default("")
+  instagramMother String    @default("")
+  publicMessage   String    @default("")
+  updatedAt       DateTime  @updatedAt
+}
+
+model Product {
+  id          String    @id // "cestas-boticario" | "colaboracao-avulsa"
+  title       String
+  description String
+  mode        OrderMode
+  unitCents   Int? // null = valor livre
+  active      Boolean   @default(true)
+  sortOrder   Int       @default(0) // ordem de exibição no catálogo (ADR 002; acrescentado na T03)
+  orders      Order[]
+}
+
+model Contributor {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  cpfCipher String // AES-256-GCM base64 (iv.tag.cipher)
+  cpfLast4  String // para busca e máscara
+  createdAt DateTime @default(now())
+  orders    Order[]
+
+  @@index([email])
+  @@index([cpfLast4])
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  publicToken    String        @unique @default(cuid()) // acesso ao status sem login
+  productId      String
+  product        Product       @relation(fields: [productId], references: [id])
+  contributorId  String
+  contributor    Contributor   @relation(fields: [contributorId], references: [id])
+  mode           OrderMode
+  amountCents    Int
+  status         OrderStatus   @default(PENDING)
+  gateway        Gateway
+  expiresAt      DateTime
+  approvedAt     DateTime?
+  refundedAt     DateTime?
+  idempotencyKey String        @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  numbers        OrderNumber[]
+  payments       Payment[]
+
+  @@index([status, expiresAt])
+  @@index([createdAt])
+}
+
+model OrderNumber {
+  orderId String
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  number  Int
+  active  Boolean @default(true) // false quando pedido expira/estorna
+
+  @@id([orderId, number])
+  @@index([number, active])
+}
+
+// Exclusividade de número ativo: índice único parcial criado em SQL dentro da migration:
+// CREATE UNIQUE INDEX "OrderNumber_number_active_unique" ON "OrderNumber"("number") WHERE "active";
+
+model Payment {
+  id                String    @id @default(cuid())
+  orderId           String
+  order             Order     @relation(fields: [orderId], references: [id])
+  gateway           Gateway
+  providerOrderId   String?   @unique
+  providerPaymentId String?   @unique
+  qrCode            String? // copia e cola
+  qrCodeBase64      String?
+  ticketUrl         String?
+  rawCreate         Json?
+  status            String    @default("pending")
+  lastCheckedAt     DateTime? // última consulta de status ao gateway (T08)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  gateway     Gateway
+  eventId     String // id do provedor (x-request-id ou data.id + ação)
+  payload     Json
+  processedAt DateTime?
+  result      String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([gateway, eventId])
+}
+
+model AdminUser {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  name         String
+  passwordHash String? // null até aceitar o convite
+  role         AdminRole   @default(ADMIN)
+  invitedById  String?
+  invitedAt    DateTime?
+  acceptedAt   DateTime?
+  disabledAt   DateTime?
+  createdAt    DateTime    @default(now())
+  sessions     Session[]
+  tokens       AuthToken[]
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique // sha256 do valor no cookie
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  remember  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model AuthToken {
+  id        String    @id @default(cuid())
+  kind      TokenKind
+  tokenHash String    @unique
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Draw {
+  id               String    @id @default(cuid())
+  performedById    String
+  performedAt      DateTime  @default(now())
+  eligibleCount    Int // quantidade de números elegíveis
+  participantsHash String // sha256 da lista ordenada "numero:orderId"
+  seedHex          String // 32 bytes de crypto.randomBytes em hex
+  winnerNumber     Int
+  winnerOrderId    String
+  notes            String?
+  annulledAt       DateTime? // anulação do sorteio (T20)
+  annulledById     String?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  target    String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

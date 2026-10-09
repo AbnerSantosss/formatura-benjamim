@@ -43,3 +43,6 @@ grep -rn "TODO(T18)" src/ ; echo "(esperado: nada)"
 ## Não fazer
 - Não expor `rawCreate`, `cpfCipher`, `passwordHash`, `tokenHash` em nenhuma resposta.
 - Não permitir mudar status de pedido manualmente além de estornar.
+
+## Desvios registrados
+- 2026-10-09: o campo de preço do produto é `Product.unitCents` (não `unitPriceCents`), e a campanha única tem id `main`. Ver [[decisoes/009-ajustes-de-consistencia-do-schema]].

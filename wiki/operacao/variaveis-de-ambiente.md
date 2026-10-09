@@ -28,7 +28,7 @@ Validadas em `src/server/env.ts` (Zod). Obrigatórias faltando em produção →
 | `MAIL_FROM` | prod | `"BENJAMIM ABC <conta@gmail.com>"` | nome exibido: BENJAMIM ABC |
 | `MAIL_REPLY_TO` | não | | |
 | `CRON_SECRET` | não | | protege `POST /api/internal/expirar` |
-| `CAMPAIGN_GOAL_CENTS`, `CAMPAIGN_COSTS_CENTS` | não | `2500000` | só para o seed inicial; depois vive no banco |
+| `CAMPAIGN_GOAL_CENTS`, `CAMPAIGN_COSTS_CENTS` | não | `250000` | só para o seed inicial; depois vive no banco |
 | `INSTAGRAM_FATHER_URL`, `INSTAGRAM_MOTHER_URL` | não | | só para o seed inicial |
 | `LOG_LEVEL` | não | `info` | |
 | `ADMIN_BOOTSTRAP_EMAIL`, `ADMIN_BOOTSTRAP_NAME` | só p/ `admin:create` | | primeiro admin (papel OWNER); lidas pelo script `scripts/admin-create.ts` |

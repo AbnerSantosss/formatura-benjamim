@@ -50,3 +50,6 @@ grep -rn "MP_ACCESS_TOKEN" src/app src/components ; echo "(esperado: nada)"
 - Não instalar o SDK `mercadopago`.
 - Não inventar nomes de campos; só os confirmados na doc.
 - Não confiar em `status` recebido no corpo do webhook.
+
+## Desvios registrados
+- 2026-10-09: o campo de preço do produto é `Product.unitCents` (não `unitPriceCents`), e a campanha única tem id `main`. Ver [[decisoes/009-ajustes-de-consistencia-do-schema]].
