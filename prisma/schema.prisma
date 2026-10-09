@@ -148,18 +148,19 @@ model WebhookEvent {
 }
 
 model AdminUser {
-  id           String      @id @default(cuid())
-  email        String      @unique
-  name         String
-  passwordHash String? // null até aceitar o convite
-  role         AdminRole   @default(ADMIN)
-  invitedById  String?
-  invitedAt    DateTime?
-  acceptedAt   DateTime?
-  disabledAt   DateTime?
-  createdAt    DateTime    @default(now())
-  sessions     Session[]
-  tokens       AuthToken[]
+  id                 String      @id @default(cuid())
+  email              String      @unique
+  name               String
+  passwordHash       String? // null até aceitar o convite
+  role               AdminRole   @default(ADMIN)
+  invitedById        String?
+  invitedAt          DateTime?
+  acceptedAt         DateTime?
+  disabledAt         DateTime?
+  mustChangePassword Boolean     @default(false) // troca obrigatória no próximo login (T14)
+  createdAt          DateTime    @default(now())
+  sessions           Session[]
+  tokens             AuthToken[]
 }
 
 model Session {

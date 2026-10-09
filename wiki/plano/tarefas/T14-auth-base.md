@@ -45,3 +45,6 @@ npm run admin:create   # com ADMIN_BOOTSTRAP_* do .env; deve criar o OWNER e sai
 - Não usar `middleware.ts`.
 - Não validar sessão no proxy consultando o banco.
 - Não imprimir nem logar senhas, nem as de bootstrap.
+
+## Desvios registrados
+- (2026-10-09) Schema real de `Session`/`AdminUser`, respostas de erro e rate limit provisórios, e a senha de bootstrap fora da política (OWNER ainda não criado no banco de dev): ver [[decisoes/010-contratos-reais-da-janela-b]].
