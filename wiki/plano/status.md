@@ -23,7 +23,7 @@ tags: [plano, status]
 | T10 | concluída | 2026-10-09 07:23 |
 | T11 | concluída | 2026-10-09 07:23 |
 | T12 | concluída | 2026-10-09 07:23 |
-| T13 | pendente | - |
+| T13 | concluída | 2026-10-09 07:31 |
 | T14 | concluída | 2026-10-09 06:37 |
 | T15 | concluída | 2026-10-09 06:33 |
 | T16 | concluída | 2026-10-09 07:01 |

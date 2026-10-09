@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@fontsource-variable/nunito';
 import '@fontsource/caveat/600.css';
 import './globals.css';
-import './demo.css';
 import './order-flow.css';
 
 export const metadata: Metadata = {
@@ -19,9 +17,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a className="skip-link" href="#conteudo">
           Pular para o conteúdo
         </a>
-        <div className="demo-banner">
-          DEMONSTRAÇÃO · Nenhum pagamento real é realizado <Link href="/admin">Backoffice</Link>
-        </div>
         {children}
       </body>
     </html>

@@ -2,9 +2,6 @@
 body:has(.payment-viewport) {
   margin: 0;
 }
-body:has(.payment-viewport) > .demo-banner {
-  display: none;
-}
 .payment-viewport {
   --payment-art: url('/images/pagamento-cartoon-chapeu-v2.png');
   position: relative;

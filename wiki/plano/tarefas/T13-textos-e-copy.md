@@ -44,3 +44,12 @@ curl -s http://127.0.0.1:3180/regulamento | grep -c "sorteio"
 - Não escrever CPF, endereço ou dados pessoais do organizador nas páginas.
 - Não prometer "autorização" legal que não existe; usar a frase do item 3 "Aviso".
 - Não alterar nada visual nas três páginas protegidas.
+
+## Desvios registrados
+- (2026-10-09) `demo.css` estilizava checkout, pagamento, obrigado, login e backoffice, não só o banner: as 1093 linhas restantes foram copiadas sem alteração para o fim de `globals.css` (mesma posição na cascata, antes de `order-flow.css`). Só as três regras de `.demo-banner` ficaram de fora.
+- (2026-10-09) Removidas de `obrigado/thanks.css` e `pagamento/payment-viewport.css` as regras que só escondiam o banner nessas páginas (sem efeito visual).
+- (2026-10-09) Passo 7 NÃO executado nas páginas protegidas: os textos de demonstração de `reference-landing.tsx`, `checkout.tsx`, `number-picker.tsx`, `payment-frame.tsx` (modo demo) e `thanks-view.tsx` continuam, porque trocá-los muda o texto da landing, do checkout e do obrigado e depende do dono. O grep do critério (`DEMONSTRAÇÃO`) ainda acusa essas linhas. Pendência obrigatória antes de ligar cobrança real.
+- (2026-10-09) O rodapé não tem link para `/regulamento`; não foi criado (decisão do dono).
+- (2026-10-09) `.admin-login` e `.admin-shell` ainda usam `min-height: calc(100vh - 32px)` (altura do banner antigo); a T19 ajusta.
+- (2026-10-09) A privacidade promete anonimização em 90 dias após o sorteio, como manda a tarefa; não existe rotina que faça isso (pendência para a T22 ou decisão do dono).
+- (2026-10-09) As páginas legais leem o Instagram da campanha `main` (ADR 011) com `revalidate = 30`.
