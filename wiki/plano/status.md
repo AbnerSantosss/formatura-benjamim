@@ -11,7 +11,7 @@ tags: [plano, status]
 | Tarefa | Status | Quando |
 |---|---|---|
 | T00 | concluída | 2026-10-09 06:09 |
-| T01 | pendente | - |
+| T01 | concluída | 2026-10-09 06:16 |
 | T02 | concluída | 2026-10-09 06:14 |
 | T03 | pendente | - |
 | T04 | pendente | - |

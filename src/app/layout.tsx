@@ -20,7 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Pular para o conteúdo
         </a>
         <div className="demo-banner">
-          DEMONSTRAÇÃO · Nenhum pagamento real é realizado <Link href="/admin/">Backoffice</Link>
+          DEMONSTRAÇÃO · Nenhum pagamento real é realizado <Link href="/admin">Backoffice</Link>
         </div>
         {children}
       </body>
