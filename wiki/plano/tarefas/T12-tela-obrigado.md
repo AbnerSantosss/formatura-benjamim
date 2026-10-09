@@ -31,3 +31,8 @@ npm run typecheck && npm run lint && npm test && npm run build
 ## Não fazer
 - Não alterar `thanks.css`, as imagens, as classes nem os textos.
 - Não mostrar a tela para pedido que não esteja APPROVED.
+
+## Desvios registrados
+- (2026-10-09) `demo-thanks.tsx` virou `src/components/thanks-view.tsx` (componente de servidor, com os detalhes do pedido embutidos); removido `src/app/obrigado/page.tsx`.
+- (2026-10-09) Os textos de demonstração ("Pedido na demonstração", "Aprovação simulada", "Este é um teste. Nenhum dinheiro foi movimentado.") foram mantidos; a versão de produção aguarda decisão do dono.
+- (2026-10-09) Pedido não aprovado redireciona para `/pagamento/<id>?t=`.

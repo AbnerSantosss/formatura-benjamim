@@ -1,35 +1,27 @@
-'use client';
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Heart } from 'lucide-react';
-import { useDemo, useDemoClock } from '@/lib/demo-store';
-import { effectiveStatus } from '@/lib/demo-model';
-import { money } from '@/lib/campaign';
-import OrderDetails from './order-details';
+import { formatBRL } from '@/domain/money';
+import { formatNumber } from '@/domain/orders';
 
-export default function DemoThanks() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const { data, ready } = useDemo();
-  const now = useDemoClock();
-  const payment = data.payments.find((item) => item.id === params.get('id'));
-  const approved = payment && effectiveStatus(payment, now) === 'approved';
-  useEffect(() => {
-    if (ready && payment && !approved) router.replace(`/pagamento?id=${payment.id}`);
-  }, [ready, payment, approved, router]);
-  if (!ready || (payment && !approved))
-    return <div className="demo-payment-card">Conferindo sua contribuição…</div>;
-  if (!payment)
-    return (
-      <div className="demo-payment-card">
-        <h1>Contribuição não encontrada</h1>
-        <p>Inicie uma simulação para conhecer o agradecimento.</p>
-        <Link className="button wide" href="/contribuir">
-          Iniciar simulação
-        </Link>
-      </div>
-    );
+// Visual da página de obrigado. Design intocável: JSX e classes são os do protótipo;
+// só a origem dos dados mudou (a prop `order` vem do servidor, já conferido como APPROVED).
+
+export type ThanksOrder = {
+  id: string;
+  status: 'APPROVED';
+  amountCents: number;
+  numbers: number[];
+  product: { title: string; mode: 'NUMBERS' | 'EXTRA' };
+  contributorFirstName: string;
+};
+
+const modeLabel = {
+  NUMBERS: 'Números das cestas',
+  EXTRA: 'Colaboração avulsa',
+} as const;
+
+export function ThanksView({ order }: { order: ThanksOrder }) {
+  const hasNumbers = order.numbers.length > 0;
   return (
     <div className="thanks-content">
       <div className="handwritten thanks-signature">
@@ -51,12 +43,24 @@ export default function DemoThanks() {
         </p>
         <div className="thanks-receipt">
           <span>Pedido na demonstração</span>
-          <strong>{money(payment.amount)}</strong>
+          <strong>{formatBRL(order.amountCents)}</strong>
           <span>
             <CheckCircle2 size={14} /> Aprovação simulada
           </span>
         </div>
-        <OrderDetails payment={payment} />
+        <div className="order-product-detail">
+          <b>{order.product.title}</b>
+          <span>
+            {modeLabel[order.product.mode]}
+            {order.product.mode === 'NUMBERS' ? ` · ${order.numbers.length} números` : ' · sem números'}
+          </span>
+          {hasNumbers && (
+            <details>
+              <summary>Ver números do pedido</summary>
+              <p>{order.numbers.map(formatNumber).join(' · ')}</p>
+            </details>
+          )}
+        </div>
         <p className="thanks-note">Este é um teste. Nenhum dinheiro foi movimentado.</p>
         <Link className="button wide" href="/">
           Voltar à campanha
