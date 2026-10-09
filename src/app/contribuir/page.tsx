@@ -2,8 +2,20 @@ import { GraduationCap, Heart } from 'lucide-react';
 import { Header, Footer, Portrait, Progress } from '@/components/shared';
 import { Suspense } from 'react';
 import CheckoutEntry from '@/components/checkout-entry';
+import { prisma } from '@/server/db';
+import { getCampaignSummary } from '@/server/orders.service';
 
-export default function Contribuir() {
+// Total arrecadado e links do rodapé vêm do banco; a página é refeita no máximo a cada 30 s.
+export const revalidate = 30;
+
+export default async function Contribuir() {
+  const [summary, links] = await Promise.all([
+    getCampaignSummary(new Date()),
+    prisma.campaign.findUnique({
+      where: { id: 'main' },
+      select: { instagramFather: true, instagramMother: true },
+    }),
+  ]);
   return (
     <>
       <Header checkout />
@@ -33,7 +45,7 @@ export default function Contribuir() {
             </h2>
             <p>Você está ajudando a transformar a formatura do Benjamim em uma memória para a vida toda.</p>
             <Portrait compact />
-            <Progress compact />
+            <Progress compact raisedCents={summary.raisedCents} goalCents={summary.goalCents} />
             <div className="aside-note">
               <Heart size={22} />
               <p>
@@ -48,7 +60,7 @@ export default function Contribuir() {
           </Suspense>
         </div>
       </main>
-      <Footer />
+      <Footer instagramFather={links?.instagramFather} instagramMother={links?.instagramMother} />
     </>
   );
 }

@@ -40,3 +40,9 @@ Teste manual com `DEMO_MODE=true`: escolher 10 números, enviar, cair em `/pagam
 ## Não fazer
 - Não alterar CSS, classes, estrutura JSX, textos ou imagens.
 - Não confirmar pagamento no cliente.
+
+## Desvios registrados
+- (2026-10-09) Arquivo a mais: `src/lib/api-client.ts` (`fetchOccupied`, `createOrder`, `fetchOrderStatus`, `approveDemoOrder`, `ApiError`), usado também pelas telas de pagamento.
+- (2026-10-09) Sem o botão "Preencher dados de teste" a página fica 61 px mais curta que a baseline; nada mais foi reorganizado.
+- (2026-10-09) Título e id do produto no resumo ainda vêm de `productFor` em `src/lib/demo-model.ts`; os textos de demonstração do checkout ("Pix · demonstração", "Total simulado" etc.) ficaram como estavam e aguardam decisão do dono.
+- (2026-10-09) `/contribuir` repassa a `Progress` e `Footer` os dados do banco (ADR 011).

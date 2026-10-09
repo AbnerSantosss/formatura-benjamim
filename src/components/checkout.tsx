@@ -1,20 +1,30 @@
 'use client';
-import { FormEvent, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Check, Heart, Info, LockKeyhole, Landmark, FlaskConical } from 'lucide-react';
+import { Check, Heart, Info, LockKeyhole, Landmark } from 'lucide-react';
 import AmountSelector from './amount-selector';
 import NumberPicker from './number-picker';
 import { money } from '@/lib/campaign';
-import { createDemoPayment, useDemo, useDemoClock } from '@/lib/demo-store';
+import { createOrder, fetchOccupied, isApiError } from '@/lib/api-client';
 import {
   OrderMode,
   TOTAL_NUMBERS,
+  formatNumber,
   numberAllowance,
-  occupiedNumbers,
   productFor,
   validateOrder,
 } from '@/lib/demo-model';
+import { newOrderSchema } from '@/domain/validation';
+
+const OCCUPIED_REFRESH_MS = 20_000;
+const GATEWAY_COOLDOWN_MS = 30_000;
+const LOAD_ERROR = 'Não foi possível carregar os números agora. Tente de novo em instantes.';
+const GENERIC_ERROR = 'Não foi possível concluir agora. Tente novamente.';
+const takenMessage = (numbers: number[]) =>
+  numbers.length === 1
+    ? `O número ${formatNumber(numbers[0])} acabou de ser reservado por outra pessoa. Escolha outro.`
+    : `Os números ${numbers.map(formatNumber).join(', ')} acabaram de ser reservados por outra pessoa. Escolha outros.`;
 const maskCpf = (value: string) =>
   value
     .replace(/\D/g, '')
@@ -31,17 +41,27 @@ const maskPhone = (value: string) =>
 export default function Checkout({
   initialAmount,
   initialMode = 'numbers',
+  initialNumbers = [],
 }: {
   initialAmount: number;
   initialMode?: OrderMode;
+  initialNumbers?: number[];
 }) {
   const router = useRouter();
   const submitting = useRef(false);
-  const { data, ready } = useDemo();
-  const now = useDemoClock();
+  // Chave de idempotência do formulário: criada no primeiro envio e trocada depois de um pedido
+  // criado, de um erro que cancela o pedido no servidor ou quando o conteúdo do pedido muda.
+  const idempotency = useRef<{ key: string; signature: string } | null>(null);
+  const selectedRef = useRef<number[]>([]);
+  const cooldown = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [occupied, setOccupied] = useState<Set<number>>(() => new Set());
+  const [ready, setReady] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const [mode, setMode] = useState<OrderMode>(initialMode);
   const [amount, setAmount] = useState(initialAmount);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selected, setSelected] = useState<number[]>(() =>
+    initialMode === 'numbers' ? initialNumbers.slice(0, numberAllowance(initialAmount)) : [],
+  );
   const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -49,8 +69,49 @@ export default function Checkout({
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const allowance = mode === 'numbers' ? numberAllowance(amount) : 0;
-  const occupied = occupiedNumbers(data, now);
   const product = productFor(mode);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+  /** Busca os ocupados na API. `extra` soma números que o servidor acabou de recusar. */
+  const refreshOccupied = useCallback(async (extra: number[] = []) => {
+    const list = await fetchOccupied();
+    const next = new Set([...list, ...extra]);
+    setOccupied(next);
+    setReady(true);
+    return next;
+  }, []);
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const next = await refreshOccupied();
+        if (!active) return;
+        setError((current) => (current === LOAD_ERROR ? '' : current));
+        // Durante o envio os números recém-reservados são os do próprio pedido.
+        if (submitting.current) return;
+        const taken = selectedRef.current.filter((number) => next.has(number));
+        if (taken.length) {
+          setSelected((items) => items.filter((number) => !next.has(number)));
+          setError(takenMessage(taken));
+        }
+      } catch {
+        if (active) setError((current) => current || LOAD_ERROR);
+      }
+    }
+    void load();
+    const timer = setInterval(load, OCCUPIED_REFRESH_MS);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [refreshOccupied]);
+  useEffect(
+    () => () => {
+      if (cooldown.current) clearTimeout(cooldown.current);
+    },
+    [],
+  );
   function chooseAmount(value: number) {
     setAmount(value);
     setSelected((items) => items.slice(0, numberAllowance(value)));
@@ -62,31 +123,65 @@ export default function Checkout({
     setError('');
     if (value === 'numbers' && !numberAllowance(amount)) setAmount(500);
   }
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function handleFailure(issue: unknown) {
+    const failure = isApiError(issue) ? issue : null;
+    // 5xx e pedido não pagável: o pedido dessa chave pode ter sido cancelado no servidor.
+    if (failure && (failure.status >= 500 || failure.code === 'ORDER_NOT_PAYABLE'))
+      idempotency.current = null;
+    if (failure?.status === 409 && failure.code === 'NUMBERS_TAKEN') {
+      const taken = failure.numbers ?? [];
+      let next = new Set(taken);
+      try {
+        next = await refreshOccupied(taken);
+      } catch {
+        setOccupied((current) => new Set([...current, ...taken]));
+      }
+      setSelected((items) => items.filter((number) => !next.has(number)));
+      setError(taken.length ? takenMessage(taken) : failure.message);
+    } else if (failure?.status === 503 && failure.code === 'GATEWAY_NOT_CONFIGURED') {
+      setError('Pagamentos em configuração. Tente de novo em instantes.');
+      setBlocked(true);
+      if (cooldown.current) clearTimeout(cooldown.current);
+      cooldown.current = setTimeout(() => setBlocked(false), GATEWAY_COOLDOWN_MS);
+    } else if (failure?.status === 429) {
+      setError('Muitas tentativas. Aguarde um minuto.');
+    } else {
+      setError(failure?.message || GENERIC_ERROR);
+    }
+  }
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current) return;
+    if (submitting.current || blocked) return;
     try {
       validateOrder(amount, mode, selected);
     } catch (issue) {
       setError((issue as Error).message);
       return;
     }
-    if (
-      name.trim().length < 2 ||
-      cpf.replace(/\D/g, '').length !== 11 ||
-      phone.replace(/\D/g, '').length !== 11
-    ) {
-      setError('Preencha os campos fictícios ou use “Preencher dados de teste”.');
+    const signature = `${mode}|${amount}|${selected.join(',')}`;
+    if (idempotency.current?.signature !== signature)
+      idempotency.current = { key: crypto.randomUUID(), signature };
+    const order = newOrderSchema.safeParse({
+      productId: product.id,
+      mode: mode === 'numbers' ? 'NUMBERS' : 'EXTRA',
+      amountCents: amount,
+      numbers: selected,
+      contributor: { name, cpf, phone, email },
+      idempotencyKey: idempotency.current.key,
+    });
+    if (!order.success) {
+      setError(order.error.issues[0]?.message ?? 'Pedido inválido.');
       return;
     }
     submitting.current = true;
     setBusy(true);
     setError('');
     try {
-      const id = createDemoPayment(amount, mode, selected);
-      router.push(`/pagamento?id=${id}`);
+      const created = await createOrder(order.data);
+      idempotency.current = null;
+      router.push(`/pagamento/${created.orderId}?t=${created.publicToken}`);
     } catch (issue) {
-      setError((issue as Error).message);
+      await handleFailure(issue);
       submitting.current = false;
       setBusy(false);
     }
@@ -150,19 +245,6 @@ export default function Checkout({
             <span className="step-number">2</span> Seus dados
           </h2>
           <p className="field-note">Use somente dados fictícios nesta demonstração.</p>
-          <button
-            type="button"
-            className="fill-demo-button"
-            onClick={() => {
-              setName('Pessoa de teste');
-              setEmail('teste@example.com');
-              setCpf('000.000.000-00');
-              setPhone('(00) 00000-0000');
-              setError('');
-            }}
-          >
-            <FlaskConical size={15} /> Preencher dados de teste
-          </button>
           <div className="form-grid">
             <label>
               Nome completo
@@ -247,7 +329,12 @@ export default function Checkout({
           <button
             className="button wide"
             type="submit"
-            disabled={busy || !ready || (mode === 'numbers' && (!allowance || selected.length !== allowance))}
+            disabled={
+              busy ||
+              blocked ||
+              !ready ||
+              (mode === 'numbers' && (!allowance || selected.length !== allowance))
+            }
           >
             <Heart size={19} />{' '}
             {busy
