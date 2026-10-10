@@ -1,6 +1,6 @@
 ---
 tipo: operacao
-atualizado: 2026-10-09
+atualizado: 2026-10-10
 tags: [deploy, docker, vps, caddy, vercel]
 ---
 
@@ -237,7 +237,14 @@ O repositório é público: nenhum valor fica nele. As variáveis ficam na próp
 O arquivo local `.env.portainer` (ignorado pelo git) guarda uma cópia do que foi carregado; na criação da stack, use "Load variables from .env file".
 
 ### Atualizar
-`git push origin main` e, no Portainer, stack `benjamim` > "Pull and redeploy". Se `NEXT_PUBLIC_SITE_URL` mudar, a imagem precisa ser reconstruída.
+`git push origin main` e, no Portainer, stack `benjamim` > "Pull and redeploy" > "Update" (sem marcar "Re-pull image"). Se `NEXT_PUBLIC_SITE_URL` mudar, a imagem precisa ser reconstruída.
+
+O que esperar (medido em dois redeploys em 2026-10-09):
+
+- O build leva cerca de 8 minutos. O site antigo continua respondendo nesse tempo; na troca há uns 30 segundos de 502.
+- O contêiner `migrate` aplica as migrações e o seed a cada deploy.
+- Para saber se a versão nova entrou, peça uma rota que só exista nela (por exemplo `curl -s -o /dev/null -w "%{http_code}" https://benjamim.proxserverabner.site/pagamento/indisponivel`) ou procure no CSS servido algo que mudou.
+- A sessão do Portainer expira; o login é sempre feito pelo dono.
 
 ### Cuidados
 - `POSTGRES_PASSWORD` não muda depois do primeiro deploy (o volume guarda a antiga).

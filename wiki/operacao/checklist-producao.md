@@ -1,6 +1,6 @@
 ---
 tipo: operacao
-atualizado: 2026-10-09
+atualizado: 2026-10-10
 tags: [checklist, producao, go-live]
 ---
 
@@ -13,7 +13,7 @@ Feito em Docker local, com `.env` fictício e sem domínio. Não substitui os it
 - [x] Imagem construída do zero, com o banco vazio e sem segredos no build.
 - [x] `migrate deploy`, `db:seed` e `admin:create` pelos comandos de [[operacao/deploy]] (`docker compose run --rm tools ...`).
 - [x] App roda como usuário sem privilégios (`app`, uid 100); `app` não publica porta, só o Caddy.
-- [x] `/` responde 200 com `strict-transport-security`, `x-content-type-options`, `x-frame-options` e CSP sem `unsafe-eval`; `/api/demo/aprovar` responde 404.
+- [x] `/` responde 200 com `strict-transport-security`, `x-content-type-options`, `x-frame-options` e CSP sem `unsafe-eval`; `/api/demo/aprovar` responde 404 (vale só com o modo demonstração desligado no painel; ligado, a rota existe: [[decisoes/016-modo-demonstracao-no-painel]]).
 - [x] `/admin/pedidos` sem sessão redireciona para o login; `/api/admin/pedidos` sem cookie responde 401; login do admin criado funciona e exige troca de senha.
 - [x] `Caddyfile` válido (`caddy validate`) e proxy respondendo por HTTPS com certificado interno.
 - [x] `POST /api/internal/expirar` com `CRON_SECRET` responde `{"expired":0}`; sem o segredo, 401.
@@ -26,8 +26,21 @@ Feito em Docker local, com `.env` fictício e sem domínio. Não substitui os it
 - [ ] `POSTGRES_PASSWORD` definida antes do primeiro `docker compose up`.
 - [ ] `AUTH_SECRET`, `CPF_ENCRYPTION_KEY` e `CRON_SECRET` gerados (`openssl rand -hex 32`) e guardados em cofre.
 - [ ] `ADMIN_BOOTSTRAP_PASSWORD` apagada do `.env` depois do primeiro login.
-- [ ] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador ([[decisoes/001-rifa-com-numeros-e-sorteio]]).
+- [ ] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador, inclusive por redação de demonstração (não revisados até 2026-10-10) ([[decisoes/001-rifa-com-numeros-e-sorteio]]).
 - [ ] Data do sorteio decidida (pode ser configurada depois no painel).
+
+## Antes de divulgar (modo demonstração, 2026-10-10)
+
+O site subiu com o modo demonstração ligado (Configurações → "Modo demonstração"). Enquanto estiver ligado nenhum Pix real é gerado, e qualquer visitante consegue aprovar o próprio pedido simulado. Na ordem:
+
+- [ ] Primeiro acesso do dono em `/admin` (senha temporária, troca obrigatória) e `ADMIN_BOOTSTRAP_PASSWORD` apagada das variáveis da stack.
+- [ ] Chaves do Mercado Pago salvas em Configurações → Gateways de pagamento, "Usar este gateway" e webhook cadastrado.
+- [ ] Interruptor do modo demonstração testado em produção: desligar, abrir `/contribuir` e conferir que os textos de teste sumiram (ainda não foi clicado em produção; só nos testes locais).
+- [ ] Modo demonstração **desligado**.
+- [ ] Pedidos aprovados de teste estornados no painel (contam na meta e ocupam números).
+- [ ] Descrição do produto em Produtos sem a frase "demonstração sem cobrança ou sorteio real".
+- [ ] Instagram do pai e da mãe preenchidos em Configurações (viram os botões de `/pagamento/indisponivel`).
+- [ ] Decidir o texto "Dados pessoais não são enviados nem salvos", que aparece com a demonstração ligada: não é verdadeiro, os dados vão para o servidor.
 
 ## Mercado Pago
 - [ ] Aplicação criada; credenciais de **produção** no `.env`.

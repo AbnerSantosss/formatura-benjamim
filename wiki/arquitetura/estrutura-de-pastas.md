@@ -1,6 +1,6 @@
 ---
 tipo: arquitetura
-atualizado: 2026-10-09
+atualizado: 2026-10-10
 tags: [estrutura, arquivos]
 ---
 
@@ -56,6 +56,7 @@ Lista de pastas e arquivos principais, conferida com `git ls-files` e `find src 
     │   ├── page.tsx              # landing
     │   ├── contribuir/page.tsx   # checkout
     │   ├── pagamento/[id]/page.tsx   # tela Pix
+    │   ├── pagamento/indisponivel/   # aviso de Pix fora do ar (sem gateway pronto)
     │   ├── obrigado/[id]/page.tsx    # agradecimento, validado no servidor
     │   ├── [legal]/page.tsx      # /privacidade, /termos, /regulamento
     │   ├── admin/                # painel: login, trocar senha, convite, redefinir senha

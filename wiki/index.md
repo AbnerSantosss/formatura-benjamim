@@ -1,12 +1,12 @@
 ---
 tipo: indice
-atualizado: 2026-10-09
+atualizado: 2026-10-10
 tags: [wiki, indice]
 ---
 
 # Wiki — Formatura do Benjamim
 
-Site de arrecadação para a formatura do ABC do Benjamim. O plano de produção (T00 a T23) está concluído: Next.js 16 com PostgreSQL e Prisma, autenticação própria, compra de números com produto, Pix pelo Mercado Pago (adapter ainda não testado com credenciais reais; FastPay e IronPay são stubs) e sorteio no painel. Falta a T24 (deploy na VPS), que depende do dono.
+Site de arrecadação para a formatura do ABC do Benjamim. O plano de produção (T00 a T23) está concluído: Next.js 16 com PostgreSQL e Prisma, autenticação própria, compra de números com produto, Pix pelo Mercado Pago (adapter ainda não testado com credenciais reais; FastPay e IronPay são stubs) e sorteio no painel. O site está no ar em `https://benjamim.proxserverabner.site` (stack `benjamim` no Portainer) em **modo demonstração** (Pix simulado, ligado por padrão no painel: [[decisoes/016-modo-demonstracao-no-painel]]). Para receber de verdade faltam passos do dono: ver "Antes de divulgar" em [[operacao/checklist-producao]].
 
 Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[decisoes/001-rifa-com-numeros-e-sorteio]].
 

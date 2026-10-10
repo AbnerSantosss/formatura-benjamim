@@ -1,6 +1,6 @@
 ---
 tipo: fluxo
-atualizado: 2026-10-09
+atualizado: 2026-10-10
 tags: [admin, backoffice, painel]
 ---
 
@@ -13,7 +13,7 @@ Visual atual de `src/components/backoffice.tsx` deve ser mantido (sidebar, topba
 2. **Pedidos** — tabela paginada (20 por página) com busca (nome, e-mail, últimos 4 do CPF, id, número, valor), filtro por status e modalidade, ações: abrir (`/pagamento/[id]`), estornar (com confirmação), reenviar e-mail de confirmação. Exportar CSV (`GET /api/admin/exportar.csv` com os mesmos filtros). CPF sempre mascarado `***.***.***-12`.
 3. **Produtos** — cards com título, modalidade, preço, pedidos, aprovado, números confirmados. Edição de título/descrição/ativo.
 4. **Usuários** — lista de admins (nome, e-mail, papel, status: convidado / ativo / desativado). Botão "Convidar" (nome + e-mail) envia o e-mail de convite ([[fluxos/autenticacao-admin]]). OWNER pode desativar ADMIN; ninguém desativa o último OWNER.
-5. **Configurações** — meta (R$), custos previstos, data e hora do sorteio, exibir resultado do sorteio na landing, Instagram do pai e da mãe, mensagem pública. Card "Gateways": qual está ativo (`PAYMENT_GATEWAY`) e se as credenciais estão presentes (sem mostrar valores). Botão "Rodar expiração agora".
+5. **Configurações** — meta (R$), custos previstos, data e hora do sorteio, exibir resultado do sorteio na landing, Instagram do pai e da mãe, mensagem pública. Card "Gateways": qual está ativo (`PAYMENT_GATEWAY`) e se as credenciais estão presentes (sem mostrar valores). Botão "Rodar expiração agora". No topo, cartão **"Modo demonstração"** com interruptor que salva na hora: ligado (padrão) = Pix simulado e textos de teste no site; desligado = textos reais e gateway de verdade; desligado sem gateway configurado = os visitantes veem o aviso de `/pagamento/indisponivel` ([[decisoes/016-modo-demonstracao-no-painel]]). Credenciais e escolha do gateway são salvas no próprio painel ([[decisoes/015-credenciais-de-gateway-no-painel]]).
 
 ## Segurança
 - Todas as rotas `/api/admin/**` exigem sessão válida (`requireAdmin()`), senão 401.

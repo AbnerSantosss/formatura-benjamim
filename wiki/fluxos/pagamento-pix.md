@@ -1,6 +1,6 @@
 ---
 tipo: fluxo
-atualizado: 2026-10-09
+atualizado: 2026-10-10
 tags: [pix, mercado-pago, webhook, pagamento]
 ---
 
@@ -40,7 +40,7 @@ Transições são monotônicas e idempotentes: aprovar um pedido já aprovado n�
 - **Nunca** confirmar pelo cliente: só o webhook ou uma consulta server-to-server muda para APPROVED.
 - Webhook valida assinatura HMAC em tempo constante, grava `WebhookEvent` com chave única e só então processa. Repetições e eventos fora de ordem não duplicam nada.
 - Valor pago deve ser igual a `amountCents`; divergência vira `AuditLog` + status mantido + aviso no painel.
-- Em `DEMO_MODE=true` (nunca em produção), o gateway `demo` devolve um QR falso e a tela mostra "Simular aprovação", que chama `POST /api/demo/aprovar` (rota só existe em DEMO_MODE).
+- Em `DEMO_MODE=true` fora de produção, ou com o **modo demonstração ligado no painel** (`Campaign.demoMode`, padrão ligado, vale também em produção: [[decisoes/016-modo-demonstracao-no-painel]]), o gateway `demo` devolve um QR falso e a tela mostra "Simular aprovação", que chama `POST /api/demo/aprovar` (sem demonstração liberada a rota responde 404). Modo demonstração desligado e nenhum gateway pronto: `POST /api/pedidos` responde `503 GATEWAY_NOT_CONFIGURED` antes de gravar pedido, reserva ou dado pessoal, e o checkout abre `/pagamento/indisponivel` (aviso para falar com os pais, no lugar do QR Code).
 
 ## Tela `/pagamento/[id]`
 - Server Component busca o pedido pelo `id` e confere o `t` (publicToken). Token errado → 404.
