@@ -60,6 +60,7 @@ Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[de
 
 ## Plano
 - [[plano/plano-de-producao]] — visão geral, fases, dependências, modelo por tarefa.
+- [[plano/plano-antes-de-divulgar]] — plano de 2026-10-11 para as pendências antes de divulgar (cinco tarefas, um agente por tarefa).
 - [[plano/orquestrador]] — prompt do agente orquestrador (copiar e colar).
 - [[plano/tarefas/T00-preparacao]] até [[plano/tarefas/T24-deploy]] — uma tarefa por arquivo, escrita para execução literal.
 

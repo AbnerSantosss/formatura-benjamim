@@ -1,6 +1,6 @@
 ---
 tipo: operacao
-atualizado: 2026-10-10
+atualizado: 2026-10-11
 tags: [checklist, producao, go-live]
 ---
 
@@ -26,7 +26,7 @@ Feito em Docker local, com `.env` fictício e sem domínio. Não substitui os it
 - [ ] `POSTGRES_PASSWORD` definida antes do primeiro `docker compose up`.
 - [ ] `AUTH_SECRET`, `CPF_ENCRYPTION_KEY` e `CRON_SECRET` gerados (`openssl rand -hex 32`) e guardados em cofre.
 - [ ] `ADMIN_BOOTSTRAP_PASSWORD` apagada do `.env` depois do primeiro login.
-- [ ] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador, inclusive por redação de demonstração (não revisados até 2026-10-10) ([[decisoes/001-rifa-com-numeros-e-sorteio]]).
+- [ ] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador ([[decisoes/001-rifa-com-numeros-e-sorteio]]). Reescritos em 2026-10-11 sem a redação de demonstração e sem promessas que o sistema não cumpre; falta o dono confirmar os compromissos que o texto assume: exclusão de dados a pedido (não há função no painel), prazo de 7 dias para o sorteado responder, devolução de Pix pago depois do prazo, idade mínima de 18 anos, se o ganhador leva as duas cestas e o canal de contato.
 - [ ] Data do sorteio decidida (pode ser configurada depois no painel).
 
 ## Antes de divulgar (modo demonstração, 2026-10-10)
@@ -38,9 +38,9 @@ O site subiu com o modo demonstração ligado (Configurações → "Modo demonst
 - [ ] Interruptor do modo demonstração testado em produção: desligar, abrir `/contribuir` e conferir que os textos de teste sumiram (ainda não foi clicado em produção; só nos testes locais).
 - [ ] Modo demonstração **desligado**.
 - [ ] Pedidos aprovados de teste estornados no painel (contam na meta e ocupam números).
-- [ ] Descrição do produto em Produtos sem a frase "demonstração sem cobrança ou sorteio real".
-- [ ] Instagram do pai e da mãe preenchidos em Configurações (viram os botões de `/pagamento/indisponivel`).
-- [ ] Decidir o texto "Dados pessoais não são enviados nem salvos", que aparece com a demonstração ligada: não é verdadeiro, os dados vão para o servidor.
+- [x] Descrição do produto em Produtos sem a frase "demonstração sem cobrança ou sorteio real". No código desde 2026-10-11 (seed e migração `20261011190000_descricao_produto_sem_demonstracao`, que só troca a descrição se ela ainda for a antiga); em produção vale depois do próximo redeploy.
+- [ ] Instagram do pai e da mãe preenchidos em Configurações (viram os botões de `/pagamento/indisponivel` e, desde 2026-10-11, os links do rodapé da landing).
+- [x] Texto "Dados pessoais não são enviados nem salvos" trocado em 2026-10-11 por um que diz o que acontece (os dados são enviados e guardados com o pedido, e o e-mail de confirmação é enviado de verdade). "Salvo neste navegador" virou "pedido de teste". Em produção depois do próximo redeploy.
 
 ## Mercado Pago
 - [ ] Aplicação criada; credenciais de **produção** no `.env`.
@@ -60,7 +60,7 @@ O site subiu com o modo demonstração ligado (Configurações → "Modo demonst
 - [ ] Nenhum CPF completo em logs, CSV exportado ou páginas públicas.
 
 ## Operação
-- [ ] Backup diário testado (restaurar em banco vazio).
-- [ ] Cron de expiração ou aceitar expiração preguiçosa.
+- [ ] Backup diário testado (restaurar em banco vazio). O serviço `backup` entrou na stack em 2026-10-11 ([[operacao/deploy]], "Rotinas automáticas"), mas ainda não rodou em produção, e a cópia fica no mesmo servidor: falta levar para fora dele.
+- [ ] Cron de expiração ou aceitar expiração preguiçosa. O serviço `expirar` entrou na stack em 2026-10-11 (chama `/api/internal/expirar` a cada 60 s); falta ver rodando em produção depois do redeploy.
 - [ ] Monitoramento mínimo: UptimeRobot (ou similar) em `/api/campanha`.
 - [ ] Entrada em `wiki/log.md` com data do go-live.

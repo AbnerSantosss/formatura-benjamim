@@ -1,6 +1,6 @@
 ---
 tipo: plano
-atualizado: 2026-10-09
+atualizado: 2026-10-11
 tags: [plano, status]
 ---
 
@@ -34,4 +34,4 @@ tags: [plano, status]
 | T21 | concluída | 2026-10-09 08:42 |
 | T22 | concluída | 2026-10-09 09:18 |
 | T23 | concluída | 2026-10-09 09:32 |
-| T24 | site no ar em `benjamim.proxserverabner.site` (stack no Portainer, túnel `servidor-abner` → `localhost:3470`); no ar em modo demonstração (Pix simulado); faltam primeiro acesso do dono, chaves do Mercado Pago no painel, desligar a demonstração, agendador e backup | 2026-10-10 |
+| T24 | site no ar em `benjamim.proxserverabner.site` (stack no Portainer, túnel `servidor-abner` → `localhost:3470`); no ar em modo demonstração (Pix simulado); em 2026-10-11 o código ganhou landing responsiva, textos legais e de checkout verdadeiros, serviços `expirar` e `backup` na stack e a correção da checagem de origem ([[plano/plano-antes-de-divulgar]]), ainda sem push nem redeploy; faltam primeiro acesso do dono, chaves do Mercado Pago no painel, desligar a demonstração e Instagram | 2026-10-11 |

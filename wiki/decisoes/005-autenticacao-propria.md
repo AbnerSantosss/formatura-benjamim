@@ -23,7 +23,7 @@ Autenticação própria conforme [[fluxos/autenticacao-admin]]:
 - Tokens de convite e redefinição: 32 bytes aleatórios, só o hash gravado, `expiresAt`, `usedAt`, um ativo por usuário e tipo.
 - `src/proxy.ts` só redireciona ausência de cookie; `requireAdmin()` valida no banco.
 - Rate limit simples em memória por processo (um único container). Se escalar para mais de um processo, trocar por tabela.
-- CSRF: rotas mutáveis exigem `Origin`/`Referer` igual a `NEXT_PUBLIC_SITE_URL` + cookie `SameSite=Lax`. Suficiente para o painel.
+- CSRF: rotas mutáveis exigem `Origin`/`Referer` igual a `NEXT_PUBLIC_SITE_URL` + cookie `SameSite=Lax`. Suficiente para o painel. Sem nenhum dos dois cabeçalhos, aceita `Sec-Fetch-Site: same-origin` (2026-10-11).
 
 ## Consequências
 - Nenhuma dependência de auth externa. Código revisado pela tarefa de segurança ([[plano/tarefas/T22-seguranca]]).
