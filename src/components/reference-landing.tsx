@@ -56,7 +56,7 @@ export type LandingProps = {
   instagramFather: string;
   instagramMother: string;
 };
-export default function ReferenceLanding({ summary, demo }: LandingProps) {
+export default function ReferenceLanding({ summary, demo, instagramFather, instagramMother }: LandingProps) {
   const [amount, setAmount] = useState(campaign.defaultAmount);
   const [menu, setMenu] = useState(false);
   return (
@@ -277,7 +277,7 @@ export default function ReferenceLanding({ summary, demo }: LandingProps) {
                 },
                 {
                   icon: CheckCheck,
-                  title: 'Teste o pagamento Pix',
+                  title: demo ? 'Teste o pagamento Pix' : 'Pague com Pix',
                   text: 'Veja o produto e os números reservados no seu pedido.',
                 },
                 {
@@ -331,7 +331,23 @@ export default function ReferenceLanding({ summary, demo }: LandingProps) {
           <p>
             Fale com a família pessoalmente.
             <br />
-            Os perfis serão adicionados aqui.
+            {instagramFather || instagramMother ? (
+              <>
+                {instagramFather && (
+                  <a href={instagramFather} target="_blank" rel="noopener noreferrer">
+                    Instagram do pai
+                  </a>
+                )}
+                {instagramFather && instagramMother && ' · '}
+                {instagramMother && (
+                  <a href={instagramMother} target="_blank" rel="noopener noreferrer">
+                    Instagram da mãe
+                  </a>
+                )}
+              </>
+            ) : (
+              'Os perfis serão adicionados aqui.'
+            )}
           </p>
         </div>
         <div>
