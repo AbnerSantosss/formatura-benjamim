@@ -1,6 +1,6 @@
 ---
 tipo: operacao
-atualizado: 2026-10-10
+atualizado: 2026-10-11
 tags: [deploy, docker, vps, caddy, vercel]
 ---
 
@@ -13,6 +13,7 @@ Estado em 2026-10-09: tudo abaixo foi ensaiado em Docker local (imagem construí
 ### O que roda
 - `Dockerfile`: gera duas imagens. `runner` é o app (saída `standalone` do Next, usuário `app`, sem privilégios). `tools` tem o `node_modules` completo, `prisma/`, `scripts/` e `src/`; serve para migração, seed e `admin:create` e só existe enquanto o comando roda.
 - `docker-compose.yml`: `db` (Postgres 16, volume `pgdata`), `app` (só `expose`, nunca publica porta), `caddy` (portas 80 e 443, HTTPS automático para `SITE_DOMAIN`) e `tools` (perfil `tools`; não sobe com `up`). O perfil `dev` (mailpit) não é usado em produção.
+- Dois serviços de rotina sobem junto com o resto, sem cron no servidor: `expirar` (varredura de reservas vencidas a cada minuto) e `backup` (dump diário do banco no volume `backups`). Detalhes em "Rotinas automáticas".
 - O build da imagem **não usa banco nem segredos**. Ele só precisa de `NEXT_PUBLIC_SITE_URL`, que o compose lê do `.env` e repassa como build arg. Se o domínio mudar, é preciso reconstruir a imagem.
 - A imagem do app não tem `tsx` nem a CLI do Prisma. Por isso os comandos de operação são `docker compose run --rm tools ...`, e não `docker compose exec app ...`.
 
@@ -138,50 +139,54 @@ Linha a linha: constrói as imagens do app e das ferramentas (alguns minutos); s
 
 **Mudou o `.env`? Use `docker compose up -d`.** O `docker compose restart app` reinicia o contêiner com as variáveis antigas. Se o que mudou foi `NEXT_PUBLIC_SITE_URL`, use `docker compose up -d --build`.
 
-### Tarefas agendadas (`crontab -e` do usuário de deploy)
-Expiração de pedidos vencidos, a cada 5 minutos. É opcional (a expiração preguiçosa já libera os números quando alguém consulta), mas mantém a grade em dia:
-```cron
-*/5 * * * * curl -fsS -m 20 -o /dev/null -X POST -H "Authorization: Bearer $(grep '^CRON_SECRET=' $HOME/benjamim/.env | cut -d= -f2-)" https://<dominio>/api/internal/expirar
-```
-Teste à mão: o mesmo comando sem `-o /dev/null` responde `{"expired":0}`. Sem o cabeçalho, responde 401.
+### Rotinas automáticas (serviços `expirar` e `backup`)
+As duas rotinas rodam dentro do próprio compose. Não há `crontab` nem script no servidor: `docker compose up -d` basta. Nenhuma variável nova: usam `CRON_SECRET` e `POSTGRES_PASSWORD`, que já existem.
 
-Backup diário. Criar `~/backup-benjamim.sh` e dar `chmod 700`:
-```sh
-#!/bin/sh
-# Dump diário do banco. O arquivo tem dados pessoais (nome, e-mail, telefone; CPF cifrado): acesso só do dono.
-set -eu
-umask 077
-cd "$HOME/benjamim"
-mkdir -p "$HOME/backups"
-destino="$HOME/backups/benjamim-$(date +%F).sql.gz"
-docker compose exec -T db pg_dump -U benjamim benjamim > "$destino.tmp"
-gzip -c "$destino.tmp" > "$destino"
-rm -f "$destino.tmp"
-find "$HOME/backups" -name 'benjamim-*.sql.gz' -mtime +30 -delete
-```
-```cron
-15 3 * * * $HOME/backup-benjamim.sh >> $HOME/backups/backup.log 2>&1
-```
-Teste de restauração em banco vazio (não toca no banco em uso):
+**`expirar`** (imagem `curlimages/curl:8.22.0`). A cada 60 segundos faz `POST http://app:3000/api/internal/expirar` pela rede interna, com o cabeçalho `Authorization: Bearer <CRON_SECRET>`. A rota expira os pedidos pendentes vencidos e libera os números deles; responde `{"expired":N}`.
+- A expiração preguiçosa continua valendo: um pendente vencido já não conta como número ocupado em nenhuma leitura. A varredura grava isso no banco, para o pedido aparecer como expirado sem depender de alguém consultar.
+- O segredo chega ao `curl` pela entrada padrão, não pela linha de comando, e não aparece no log.
+- O log só ganha linha quando o estado muda: `expirar: ok, varredura a cada 60s`, `expirar: falha HTTP <código>` (`000` = app fora do ar ou reiniciando; `401` = `CRON_SECRET` diferente do app) ou `expirar: {"expired":N}` quando algum pedido expirou. Falha não derruba o laço.
+- Com `CRON_SECRET` vazio o serviço avisa uma vez no log e fica parado, e a rota responde 401 para qualquer um. Preencha a variável e rode `docker compose up -d`.
+
+**`backup`** (imagem `postgres:16-alpine`, a mesma do `db`). Faz um `pg_dump` em formato custom assim que sobe e depois todo dia às 03:15 UTC (00:15 em Brasília).
+- Arquivo: `/backups/benjamim-AAAA-MM-DD.dump` (data UTC), no volume `backups`. Um arquivo por dia: um segundo backup no mesmo dia substitui o primeiro.
+- Escrita atômica: grava em `.tmp`, confere com `pg_restore --list` e só então renomeia. Se falhar, o arquivo anterior fica intacto e há nova tentativa em 10 minutos.
+- Guarda os 14 arquivos mais recentes e apaga os mais antigos, só depois de um backup que deu certo. Horário e quantidade ficam em `BACKUP_HORA_UTC` e `BACKUP_MANTER`, no próprio compose.
+- O arquivo tem dados pessoais (nome, e-mail, telefone; CPF cifrado). A chave `CPF_ENCRYPTION_KEY` não está no dump: sem ela os CPFs restaurados não podem ser lidos.
+
+Ver se estão rodando:
 ```bash
 cd ~/benjamim
-docker compose exec -T db createdb -U benjamim restauracao_teste
-gunzip -c ~/backups/benjamim-AAAA-MM-DD.sql.gz | docker compose exec -T db psql -q -v ON_ERROR_STOP=1 -U benjamim -d restauracao_teste
-docker compose exec -T db psql -U benjamim -d restauracao_teste -c 'select count(*) from "Campaign"'
-docker compose exec -T db dropdb -U benjamim restauracao_teste
+docker compose ps expirar backup
+docker compose logs --tail 20 expirar backup
+docker compose exec backup ls -lh /backups
 ```
-O backup só protege de verdade se sair do servidor. Para onde copiar (e com que proteção) é decisão do dono, porque o arquivo tem dados pessoais. A chave `CPF_ENCRYPTION_KEY` não está no dump: sem ela os CPFs restaurados não podem ser lidos.
+Backup na hora (antes de atualizar, por exemplo): `docker compose restart backup` e conferir a linha `backup: benjamim-AAAA-MM-DD.dump gravado (...)` no log.
+
+Teste de restauração em banco vazio (não toca no banco em uso):
+```bash
+docker compose exec backup sh -c 'createdb restauracao_teste && pg_restore --no-owner -d restauracao_teste /backups/benjamim-AAAA-MM-DD.dump && psql -d restauracao_teste -c "select count(*) from \"Campaign\""; dropdb restauracao_teste'
+```
+Restauração de verdade, por cima do banco em uso. **Apaga tudo o que entrou depois do backup**; avise o dono antes:
+```bash
+docker compose stop app expirar
+docker compose exec backup pg_restore --clean --if-exists --no-owner -d benjamim /backups/benjamim-AAAA-MM-DD.dump
+docker compose start app expirar
+```
+
+**Limite do backup: ele fica no mesmo servidor do banco.** Protege contra erro humano, migração ruim e dado apagado. Não protege contra perda do servidor, do disco ou do volume (`docker compose down -v` apaga o banco e os backups juntos). Enquanto nenhuma cópia sair do servidor, perder o servidor é perder a campanha inteira.
+Para copiar para fora: no servidor, `docker compose cp backup:/backups/benjamim-AAAA-MM-DD.dump ~/`; no seu computador, `scp usuario@servidor:benjamim-AAAA-MM-DD.dump .`. Para onde copiar e com que frequência é decisão do dono, porque o arquivo tem dados pessoais.
 
 ### Atualizar
 ```bash
 cd ~/benjamim
-~/backup-benjamim.sh
+docker compose restart backup && sleep 15 && docker compose logs --tail 1 backup
 git pull
 docker compose --profile tools build
 docker compose run --rm tools npx prisma migrate deploy
 docker compose up -d
 ```
-O backup vem sempre antes. Nunca usar `prisma migrate dev` no servidor.
+O backup vem sempre antes: só siga se a última linha do log for `backup: ... gravado`. Nunca usar `prisma migrate dev` no servidor.
 
 ### Reverter
 ```bash
@@ -208,9 +213,15 @@ Ensaio de 2026-10-09 em Docker Desktop (Windows), projeto isolado, com um `.env`
 - `migrate deploy`, `db:seed`, `admin:create` e `email:test` (até a tentativa de conexão SMTP) pelos comandos acima;
 - `/` 200 com `Strict-Transport-Security` e CSP sem `unsafe-eval`; `/api/demo/aprovar` 404; `/admin` 200; login do admin criado, com troca de senha obrigatória; `/api/admin/*` sem cookie 401;
 - processo do app como usuário `app` (uid 100), não root; `Caddyfile` válido e proxy do Caddy respondendo por HTTPS com certificado interno;
-- comando do cron de expiração (`{"expired":0}`), `pg_dump` e restauração em banco vazio.
+- chamada de expiração (`{"expired":0}`), `pg_dump` e restauração em banco vazio.
 
-Não verificado: VPS Linux real, memória durante o build em 2 GB, certificado público do Caddy com o domínio, Mercado Pago (cobrança, webhook, estorno), SMTP real (alguns provedores de VPS bloqueiam a porta 587 de saída), cron no servidor, o script de backup como arquivo (os comandos dele foram rodados um a um).
+Não verificado: VPS Linux real, memória durante o build em 2 GB, certificado público do Caddy com o domínio, Mercado Pago (cobrança, webhook, estorno), SMTP real (alguns provedores de VPS bloqueiam a porta 587 de saída).
+
+Ensaio de 2026-10-11 dos serviços `expirar` e `backup` (Docker Desktop, projeto isolado `benjamim-ensaio-ops`, senha fictícia, removido ao final), com as definições do `docker-compose.portainer.yml`:
+- `backup`: primeiro dump ao subir; `pg_restore --list` lê o arquivo (formato custom, Postgres 16.15); restauração em banco vazio com 5.000 linhas conferidas; com 20 arquivos antigos no volume, sobraram os 14 mais recentes; `.tmp` órfão removido; com o banco parado, registra `FALHOU`, mantém os arquivos e segue no ar; arquivo com permissão 600; próximo horário calculado para 03:15 UTC.
+- `expirar`: contra o servidor de desenvolvimento, respondeu `ok` com o segredo certo e uma única linha de log para cada caso de falha (401 com segredo errado, 000 com o app inacessível, aviso com segredo vazio); o segredo não aparece no log nem na lista de processos.
+
+Não verificado nos serviços novos: a troca de dia (o segundo backup, às 03:15 UTC), a restauração por cima do banco em uso (`--clean`), a cópia para fora do servidor e os dois serviços dentro da stack real do Portainer.
 
 ## Caminho B: Vercel + Neon
 - Projeto Vercel apontando para o repo; `DATABASE_URL` do Neon (pooled) + `DIRECT_URL` para migrações.
@@ -230,6 +241,8 @@ Stack `benjamim` criada a partir do repositório público `https://github.com/Ab
 - `db`: Postgres 16, sem porta publicada.
 - `migrate`: roda uma vez a cada deploy e termina (migrações, seed e, se houver `ADMIN_BOOTSTRAP_PASSWORD`, `admin:create`). Tudo idempotente.
 - `app`: a imagem `runner`. Só sobe depois que `migrate` termina sem erro.
+- `expirar`: chama `POST /api/internal/expirar` a cada minuto pela rede interna (`http://app:3000`), com o `CRON_SECRET` da stack. Imagem pública `curlimages/curl:8.22.0`; não passa pelo túnel.
+- `backup`: `pg_dump` ao subir e todo dia às 03:15 UTC, no volume `benjamim_backups`. Imagem `postgres:16-alpine`, a mesma do `db`. Guarda 14 dias.
 - Não há `cloudflared` na stack. O app publica só `127.0.0.1:3470` no servidor (`APP_PORT` troca a porta), e o túnel `servidor-abner`, que já roda no servidor, tem a rota `benjamim.proxserverabner.site` → `http://localhost:3470`.
 
 ### Variáveis
@@ -251,4 +264,21 @@ O que esperar (medido em dois redeploys em 2026-10-09):
 - Depois do primeiro login do administrador, apague `ADMIN_BOOTSTRAP_PASSWORD` das variáveis da stack.
 - Webhook do Mercado Pago: `https://benjamim.proxserverabner.site/api/webhooks/mercadopago`.
 - Chaves do gateway: entram pelo painel (Configurações → Gateways de pagamento), só pelo proprietário. `MP_*`, `FASTPAY_*` e `IRONPAY_*` na stack são opcionais; o que for salvo no painel vale no lugar delas.
-- Expiração de reservas e backup (seção "Tarefas agendadas" do Caminho A) ainda precisam de um agendador no servidor.
+- `CRON_SECRET` precisa estar preenchido nas variáveis da stack. Vazio, o serviço `expirar` fica parado (avisa no log) e sobra só a expiração preguiçosa.
+
+### Rotinas automáticas
+Expiração de reservas e backup rodam na própria stack: "Pull and redeploy" basta, sem cron no servidor e sem variável nova. O funcionamento de cada serviço está em "Rotinas automáticas" do Caminho A; aqui ficam só os comandos desta instalação.
+
+Ver se estão rodando: no Portainer, stack `benjamim` > contêineres `benjamim-expirar-1` e `benjamim-backup-1` com estado `running`, e o ícone de log de cada um. O esperado é `expirar: ok, varredura a cada 60s` e `backup: benjamim-AAAA-MM-DD.dump gravado (...), N arquivo(s) no volume`. Pelo terminal do servidor:
+```bash
+docker logs --tail 20 benjamim-expirar-1
+docker logs --tail 20 benjamim-backup-1
+docker exec benjamim-backup-1 ls -lh /backups
+```
+- Cada redeploy pode recriar o contêiner `backup` e gerar um backup novo do dia, mas ele roda ao mesmo tempo que o `migrate`: não conta como "backup antes da migração". Antes de um deploy que traga migração, reinicie o contêiner `backup` no Portainer (botão Restart) e confira a linha `gravado` no log.
+- Teste de restauração em banco vazio (pelo terminal do servidor):
+  ```bash
+  docker exec benjamim-backup-1 sh -c 'createdb restauracao_teste && pg_restore --no-owner -d restauracao_teste /backups/benjamim-AAAA-MM-DD.dump && psql -d restauracao_teste -c "select count(*) from \"Campaign\""; dropdb restauracao_teste'
+  ```
+- Restauração de verdade (**apaga o que entrou depois do backup**): parar `benjamim-app-1` e `benjamim-expirar-1` no Portainer, rodar `docker exec benjamim-backup-1 pg_restore --clean --if-exists --no-owner -d benjamim /backups/benjamim-AAAA-MM-DD.dump` e iniciar os dois de novo.
+- **O backup fica no mesmo servidor.** Se o servidor, o disco ou o volume `benjamim_backups` se perderem, o banco e os backups vão juntos. Remover a stack apagando os volumes também leva os dois. Para ter cópia fora: no servidor, `docker cp benjamim-backup-1:/backups/benjamim-AAAA-MM-DD.dump ~/`; no computador, `scp usuario@servidor:benjamim-AAAA-MM-DD.dump .`. Hoje ninguém faz essa cópia: é passo manual do dono.
