@@ -329,8 +329,8 @@ export default function Checkout({
               <p className="data-note">
                 <LockKeyhole size={14} />{' '}
                 {demo
-                  ? 'Dados pessoais não são enviados nem salvos. Pedido, números, valor, datas e status do teste ficam neste navegador.'
-                  : 'Seus dados são usados só para registrar o pedido, gerar o Pix e enviar a confirmação.'}{' '}
+                  ? 'Mesmo no teste, seus dados são enviados e guardados com o pedido, e o e-mail de confirmação é enviado de verdade.'
+                  : 'Seus dados são usados para registrar o pedido, gerar o Pix, enviar a confirmação e avisar quem for sorteado.'}{' '}
                 <Link href="/privacidade">Privacidade</Link>
               </p>
             </section>

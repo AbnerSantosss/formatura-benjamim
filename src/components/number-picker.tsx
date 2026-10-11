@@ -235,7 +235,7 @@ export default function NumberPicker({
       )}
       <small className="number-local-note">
         {demo
-          ? 'Nesta demonstração, a disponibilidade é salva apenas neste navegador. Ao abrir o Pix, a reserva de teste dura 10 minutos.'
+          ? 'Nesta demonstração, a disponibilidade vem do servidor e vale para todos. Ao abrir o Pix, a reserva de teste dura 10 minutos.'
           : 'Ao abrir o Pix, seus números ficam reservados por 10 minutos.'}
       </small>
     </div>

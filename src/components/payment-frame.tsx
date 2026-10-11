@@ -29,7 +29,7 @@ const demoCopy = {
   copyButton: 'Copiar código de demonstração',
   copied: 'Código de teste copiado. Não funciona em aplicativos bancários.',
   renew: 'Gerar novo Pix de teste',
-  recordSuffix: ' · salvo neste navegador',
+  recordSuffix: ' · pedido de teste',
   footer: 'Demonstração · sem cobrança real',
 };
 const realCopy: typeof demoCopy = {
