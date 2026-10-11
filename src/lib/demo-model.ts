@@ -21,8 +21,7 @@ export const demoProducts: DemoProduct[] = [
     id: 'cestas-boticario',
     title: 'Cestas Boticário — participação no sorteio',
     mode: 'numbers',
-    description:
-      'Cestas masculina e feminina. Seleção de números em uma demonstração sem cobrança ou sorteio real.',
+    description: 'Cestas masculina e feminina. Cada R$ 5 dão 10 números para o sorteio.',
     unitPrice: NUMBER_UNIT_CENTS,
   },
   {

@@ -42,8 +42,7 @@ async function main() {
     {
       id: 'cestas-boticario',
       title: 'Cestas O Boticário',
-      description:
-        'Cestas masculina e feminina. Seleção de números em uma demonstração sem cobrança ou sorteio real.',
+      description: 'Cestas masculina e feminina. Cada R$ 5 dão 10 números para o sorteio.',
       mode: 'NUMBERS' as const,
       unitCents: 50,
       sortOrder: 1,
