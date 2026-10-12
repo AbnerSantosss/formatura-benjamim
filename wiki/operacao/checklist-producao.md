@@ -26,7 +26,7 @@ Feito em Docker local, com `.env` fictício e sem domínio. Não substitui os it
 - [ ] `POSTGRES_PASSWORD` definida antes do primeiro `docker compose up`.
 - [ ] `AUTH_SECRET`, `CPF_ENCRYPTION_KEY` e `CRON_SECRET` gerados (`openssl rand -hex 32`) e guardados em cofre.
 - [ ] `ADMIN_BOOTSTRAP_PASSWORD` apagada do `.env` depois do primeiro login.
-- [x] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador ([[decisoes/001-rifa-com-numeros-e-sorteio]]). Reescritos em 2026-10-11 e confirmados pelo dono no mesmo dia, com os compromissos que o texto assume: exclusão de dados a pedido (feita à mão, não há função no painel), 7 dias para o sorteado responder, devolução de Pix pago depois do prazo, idade mínima de 18 anos, o ganhador leva as duas cestas e contato pelo Instagram dos pais. Em produção depois do próximo redeploy.
+- [x] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador ([[decisoes/001-rifa-com-numeros-e-sorteio]]). Reescritos em 2026-10-11 e confirmados pelo dono no mesmo dia, com os compromissos que o texto assume: exclusão de dados a pedido (feita à mão, não há função no painel), 7 dias para o sorteado responder, devolução de Pix pago depois do prazo, idade mínima de 18 anos, prêmio "o descrito na página inicial" (o regulamento não diz se uma pessoa leva as duas cestas) e contato pelo Instagram dos pais. Em produção depois do próximo redeploy.
 - [ ] Data do sorteio decidida (pode ser configurada depois no painel).
 
 ## Antes de divulgar (modo demonstração, 2026-10-10)
