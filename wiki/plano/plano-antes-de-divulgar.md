@@ -1,6 +1,6 @@
 ---
 tipo: plano
-atualizado: 2026-10-11
+atualizado: 2026-10-12
 tags: [plano, go-live, responsividade]
 ---
 
@@ -20,8 +20,14 @@ O orquestrador é a sessão principal. Cada agente tem arquivos próprios, não 
 
 Depois dos agentes, o orquestrador roda `format:check`, `typecheck`, `lint`, `npm test`, `test:integration`, `test:e2e` e `build`, confere as capturas, faz os commits e atualiza [[log]].
 
+## Resultado (2026-10-12)
+As cinco tarefas foram concluídas e validadas (`format:check`, `typecheck`, `lint`, 156 testes unitários, 133 de integração, 12 de ponta a ponta e `build`). Entraram ainda, a pedido do dono, os links do Instagram dos pais por migração de dados e a confirmação dos textos legais. O dono rodou o push e o "Pull and redeploy" (o agente é barrado pela proteção de permissões nas duas ações); a produção foi conferida em 2026-10-12. Relato em [[log]], itens marcados em [[operacao/checklist-producao]], linha da T24 em [[plano/status]], rotinas em [[operacao/deploy]].
+
+Para retomar o ambiente local: `docker compose --profile dev up -d db mailpit` e `npm run dev` com `SMTP_HOST=127.0.0.1` e `SMTP_PORT=1025` (o `.env` aponta para o Gmail); abrir por `http://127.0.0.1:3180`, nunca por `localhost`.
+
 ## Fica com o dono
 - Primeiro acesso ao `/admin` em produção (a senha só ele digita) e apagar `ADMIN_BOOTSTRAP_PASSWORD` da stack.
 - Chaves do Mercado Pago e webhook, pelo painel.
 - Desligar o modo demonstração (sem gateway pronto, o checkout mostra o aviso de Pix indisponível).
-- Links do Instagram do pai e da mãe, em Configurações.
+- Estornar os pedidos aprovados de teste.
+- Restaurar o backup em banco vazio no servidor e levar a cópia para fora dele.

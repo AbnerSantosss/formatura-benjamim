@@ -1,12 +1,14 @@
 ---
 tipo: indice
-atualizado: 2026-10-10
+atualizado: 2026-10-12
 tags: [wiki, indice]
 ---
 
 # Wiki — Formatura do Benjamim
 
 Site de arrecadação para a formatura do ABC do Benjamim. O plano de produção (T00 a T23) está concluído: Next.js 16 com PostgreSQL e Prisma, autenticação própria, compra de números com produto, Pix pelo Mercado Pago (adapter ainda não testado com credenciais reais; FastPay e IronPay são stubs) e sorteio no painel. O site está no ar em `https://benjamim.proxserverabner.site` (stack `benjamim` no Portainer) em **modo demonstração** (Pix simulado, ligado por padrão no painel: [[decisoes/016-modo-demonstracao-no-painel]]). Para receber de verdade faltam passos do dono: ver "Antes de divulgar" em [[operacao/checklist-producao]].
+
+**Estado em 2026-10-12** (para retomar): as pendências de código antes de divulgar foram resolvidas e estão em produção desde o redeploy de 2026-10-12: landing responsiva, textos do checkout e páginas legais verdadeiros, Instagram dos pais, descrição do produto e os serviços `expirar` e `backup` na stack. O plano e o resultado estão em [[plano/plano-antes-de-divulgar]]; o relato, nas entradas de 2026-10-11 e 2026-10-12 de [[log]]; a operação das rotinas, em [[operacao/deploy]] ("Rotinas automáticas"); a checagem de origem, em [[operacao/seguranca]] e [[decisoes/005-autenticacao-propria]]. Falta só o que depende do dono: primeiro acesso ao `/admin` e apagar a senha inicial da stack, chaves do Mercado Pago e webhook, desligar o modo demonstração, estornar os pedidos de teste e levar o backup para fora do servidor ([[operacao/checklist-producao]], [[plano/status]]).
 
 Leia primeiro: [[analise/estado-atual]] → [[plano/plano-de-producao]] → [[decisoes/001-rifa-com-numeros-e-sorteio]].
 
