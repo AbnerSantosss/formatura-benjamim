@@ -156,3 +156,10 @@ Formato: `## [AAAA-MM-DD] <tipo> | <resumo>` — tipos: setup, ingest, query, li
   - Origem: o 403 em `/api/admin/sorteio` no dev era requisição sem `Origin` nem `Referer`. `assertSameOrigin` passou a aceitar `Sec-Fetch-Site: same-origin` nesse caso.
 - **Entregue:** `format:check`, `typecheck`, `lint` (0 erros, 2 avisos antigos), `npm test` (156), `test:integration` (133), `test:e2e` (12, snapshots sem regenerar) e `build` verdes. Landing conferida em 320, 390, 768 e 1280 px, sem rolagem lateral, com a demonstração ligada e desligada e com o Instagram cadastrado.
 - **Armadilhas:** nada disso está em produção: falta push e "Pull and redeploy". Os serviços `expirar` e `backup` não rodaram na stack real; `CRON_SECRET` precisa existir nas variáveis da stack. O backup fica no mesmo servidor. Os textos legais assumem compromissos que o dono precisa confirmar (lista em [[operacao/checklist-producao]]); a exclusão de dados a pedido não tem função no painel. Não foi testado em Safari nem Firefox. Os alvos de toque da navegação e do rodapé da landing continuam pequenos, como já eram. O `.env` local aponta o SMTP para o Gmail: rodar o dev com `SMTP_HOST=127.0.0.1` e `SMTP_PORT=1025` para os e-mails de teste caírem no Mailpit. `next-env.d.ts` muda sozinho com o dev e não entra em commit.
+
+## [2026-10-11] update | Instagram dos pais por migração e textos legais confirmados
+
+- **Pedido:** o dono informou os perfis do Instagram do pai e da mãe e confirmou os textos legais.
+- **O que foi feito:** migração só de dados `20261011210000_instagram_dos_pais`, que grava os dois endereços em `Campaign` quando o campo está vazio (assim chega à produção no redeploy, sem depender do login no painel). [[operacao/checklist-producao]] marca os textos legais como revisados.
+- **Entregue:** migração aplicada no banco local; `/` e `/pagamento/indisponivel` servem os dois links.
+- **Armadilhas:** o push para o GitHub foi recusado pela proteção de permissões do Claude Code nesta sessão; os commits de 2026-10-11 seguem só na máquina do dono até ele rodar o push. A exclusão de dados a pedido, prometida na privacidade, é manual.
