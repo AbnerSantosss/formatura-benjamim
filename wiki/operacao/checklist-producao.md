@@ -1,6 +1,6 @@
 ---
 tipo: operacao
-atualizado: 2026-10-11
+atualizado: 2026-10-12
 tags: [checklist, producao, go-live]
 ---
 
@@ -26,7 +26,7 @@ Feito em Docker local, com `.env` fictício e sem domínio. Não substitui os it
 - [ ] `POSTGRES_PASSWORD` definida antes do primeiro `docker compose up`.
 - [ ] `AUTH_SECRET`, `CPF_ENCRYPTION_KEY` e `CRON_SECRET` gerados (`openssl rand -hex 32`) e guardados em cofre.
 - [ ] `ADMIN_BOOTSTRAP_PASSWORD` apagada do `.env` depois do primeiro login.
-- [x] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador ([[decisoes/001-rifa-com-numeros-e-sorteio]]). Reescritos em 2026-10-11 e confirmados pelo dono no mesmo dia, com os compromissos que o texto assume: exclusão de dados a pedido (feita à mão, não há função no painel), 7 dias para o sorteado responder, devolução de Pix pago depois do prazo, idade mínima de 18 anos, prêmio "o descrito na página inicial" (o regulamento não diz se uma pessoa leva as duas cestas) e contato pelo Instagram dos pais. Em produção depois do próximo redeploy.
+- [x] Textos legais (`/termos`, `/privacidade`, `/regulamento`) revisados pelo organizador ([[decisoes/001-rifa-com-numeros-e-sorteio]]). Reescritos em 2026-10-11 e confirmados pelo dono no mesmo dia, com os compromissos que o texto assume: exclusão de dados a pedido (feita à mão, não há função no painel), 7 dias para o sorteado responder, devolução de Pix pago depois do prazo, idade mínima de 18 anos, prêmio "o descrito na página inicial" (o regulamento não diz se uma pessoa leva as duas cestas) e contato pelo Instagram dos pais. Em produção desde o redeploy de 2026-10-12.
 - [ ] Data do sorteio decidida (pode ser configurada depois no painel).
 
 ## Antes de divulgar (modo demonstração, 2026-10-10)
@@ -38,9 +38,9 @@ O site subiu com o modo demonstração ligado (Configurações → "Modo demonst
 - [ ] Interruptor do modo demonstração testado em produção: desligar, abrir `/contribuir` e conferir que os textos de teste sumiram (ainda não foi clicado em produção; só nos testes locais).
 - [ ] Modo demonstração **desligado**.
 - [ ] Pedidos aprovados de teste estornados no painel (contam na meta e ocupam números).
-- [x] Descrição do produto em Produtos sem a frase "demonstração sem cobrança ou sorteio real". No código desde 2026-10-11 (seed e migração `20261011190000_descricao_produto_sem_demonstracao`, que só troca a descrição se ela ainda for a antiga); em produção vale depois do próximo redeploy.
-- [x] Instagram do pai e da mãe preenchidos (viram os botões de `/pagamento/indisponivel` e os links do rodapé da landing). Informados pelo dono em 2026-10-11 e gravados pela migração `20261011210000_instagram_dos_pais`, que só preenche campo vazio; em produção depois do próximo redeploy. Continuam editáveis em Configurações.
-- [x] Texto "Dados pessoais não são enviados nem salvos" trocado em 2026-10-11 por um que diz o que acontece (os dados são enviados e guardados com o pedido, e o e-mail de confirmação é enviado de verdade). "Salvo neste navegador" virou "pedido de teste". Em produção depois do próximo redeploy.
+- [x] Descrição do produto em Produtos sem a frase "demonstração sem cobrança ou sorteio real". No código desde 2026-10-11 (seed e migração `20261011190000_descricao_produto_sem_demonstracao`, que só troca a descrição se ela ainda for a antiga); em produção desde o redeploy de 2026-10-12 (migração aplicada, conforme o log do `migrate`).
+- [x] Instagram do pai e da mãe preenchidos (viram os botões de `/pagamento/indisponivel` e os links do rodapé da landing). Informados pelo dono em 2026-10-11 e gravados pela migração `20261011210000_instagram_dos_pais`, que só preenche campo vazio; em produção desde o redeploy de 2026-10-12 (links conferidos em `/` e `/pagamento/indisponivel`). Continuam editáveis em Configurações.
+- [x] Texto "Dados pessoais não são enviados nem salvos" trocado em 2026-10-11 por um que diz o que acontece (os dados são enviados e guardados com o pedido, e o e-mail de confirmação é enviado de verdade). "Salvo neste navegador" virou "pedido de teste". Em produção desde o redeploy de 2026-10-12.
 
 ## Mercado Pago
 - [ ] Aplicação criada; credenciais de **produção** no `.env`.
@@ -60,7 +60,7 @@ O site subiu com o modo demonstração ligado (Configurações → "Modo demonst
 - [ ] Nenhum CPF completo em logs, CSV exportado ou páginas públicas.
 
 ## Operação
-- [ ] Backup diário testado (restaurar em banco vazio). O serviço `backup` entrou na stack em 2026-10-11 ([[operacao/deploy]], "Rotinas automáticas"), mas ainda não rodou em produção, e a cópia fica no mesmo servidor: falta levar para fora dele.
-- [ ] Cron de expiração ou aceitar expiração preguiçosa. O serviço `expirar` entrou na stack em 2026-10-11 (chama `/api/internal/expirar` a cada 60 s); falta ver rodando em produção depois do redeploy.
+- [ ] Backup diário testado (restaurar em banco vazio). O serviço `backup` roda na stack desde 2026-10-12 e gravou o primeiro arquivo (`benjamim-2026-10-12.dump`, 28 KB). Faltam: restaurar esse arquivo em banco vazio no servidor, ver o backup das 03:15 UTC acontecer e levar a cópia para fora do servidor ([[operacao/deploy]], "Rotinas automáticas").
+- [x] Cron de expiração: serviço `expirar` rodando na stack desde 2026-10-12, a cada 60 s; o log mostra `expirar: ok`, então o `CRON_SECRET` da stack confere com o do app.
 - [ ] Monitoramento mínimo: UptimeRobot (ou similar) em `/api/campanha`.
 - [ ] Entrada em `wiki/log.md` com data do go-live.
